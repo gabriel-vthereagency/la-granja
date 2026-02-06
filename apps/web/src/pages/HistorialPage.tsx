@@ -25,8 +25,9 @@ export function HistorialPage() {
   // Agrupar por año
   const byYear = seasons.reduce(
     (acc, s) => {
-      if (!acc[s.year]) acc[s.year] = []
-      acc[s.year].push(s)
+      const bucket = acc[s.year] ?? []
+      bucket.push(s)
+      acc[s.year] = bucket
       return acc
     },
     {} as Record<number, typeof seasons>
