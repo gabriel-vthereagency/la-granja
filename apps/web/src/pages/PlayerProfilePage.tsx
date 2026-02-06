@@ -71,23 +71,12 @@ export function PlayerProfilePage() {
         </div>
       </div>
 
-      {/* Badges - TODO: cargar desde DB */}
-      <div className="flex flex-wrap gap-2">
-        {stats.golds >= 3 && (
-          <Badge label="Triple Campeón" color="bg-yellow-600" />
-        )}
-        {stats.golds >= 2 && stats.golds < 3 && (
-          <Badge label="Bicampeón" color="bg-yellow-700" />
-        )}
-        {stats.finalSevens > 0 && (
+      {/* Badges HOF - TODO: reemplazar por PNGs */}
+      {stats.finalSevens > 0 && (
+        <div className="flex flex-wrap gap-2">
           <Badge label={`${stats.finalSevens}x Final Seven`} color="bg-purple-700" />
-        )}
-        {stats.golds === 0 && stats.silvers === 0 && stats.bronzes === 0 && (
-          <span className="px-3 py-1 bg-gray-700 rounded-full text-sm text-gray-400">
-            Sin badges aún
-          </span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Stats principales */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
