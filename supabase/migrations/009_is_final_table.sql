@@ -20,7 +20,7 @@ SELECT
   SUM(CASE WHEN er.position = 5 THEN 1 ELSE 0 END) as fifths,
   SUM(CASE WHEN er.position <= 5 THEN 1 ELSE 0 END) as podiums,
   SUM(CASE WHEN er.position = 6 OR er.is_bubble = true THEN 1 ELSE 0 END) as bubbles,
-  SUM(CASE WHEN er.is_final_table = true THEN 1 ELSE 0 END) as final_tables,
+  SUM(CASE WHEN COALESCE(er.is_final_table, er.position <= 9) THEN 1 ELSE 0 END) as final_tables,
   MIN(en.date) as member_since
 FROM event_results er
 JOIN players p ON p.id = er.player_id
@@ -45,7 +45,7 @@ SELECT
   SUM(CASE WHEN er.position = 5 THEN 1 ELSE 0 END) as fifths,
   SUM(CASE WHEN er.position <= 5 THEN 1 ELSE 0 END) as podiums,
   SUM(CASE WHEN er.position = 6 OR er.is_bubble = true THEN 1 ELSE 0 END) as bubbles,
-  SUM(CASE WHEN er.is_final_table = true THEN 1 ELSE 0 END) as final_tables
+  SUM(CASE WHEN COALESCE(er.is_final_table, er.position <= 9) THEN 1 ELSE 0 END) as final_tables
 FROM event_results er
 JOIN event_nights en ON en.id = er.event_id
 JOIN players p ON p.id = er.player_id
