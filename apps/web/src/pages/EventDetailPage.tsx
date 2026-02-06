@@ -39,19 +39,20 @@ export function EventDetailPage() {
     )
   }
 
-  // Calcular totales
-  const totalPlayers = results.length
-  const totalRebuys = results.reduce((sum, r) => sum + r.rebuys, 0)
-  const totalPrize = results.reduce((sum, r) => sum + r.prize, 0)
+  // Ordenar resultados por posición (por si acaso no viene ordenado)
+  const sortedResults = [...results].sort((a, b) => a.position - b.position)
 
-  const podium =
-    results.length >= 3
-      ? {
-          first: results[0]!,
-          second: results[1]!,
-          third: results[2]!,
-        }
-      : null
+  // Calcular totales
+  const totalPlayers = sortedResults.length
+  const totalRebuys = sortedResults.reduce((sum, r) => sum + r.rebuys, 0)
+  const totalPrize = sortedResults.reduce((sum, r) => sum + r.prize, 0)
+
+  // Buscar podio por posición real, no por índice de array
+  const first = sortedResults.find((r) => r.position === 1)
+  const second = sortedResults.find((r) => r.position === 2)
+  const third = sortedResults.find((r) => r.position === 3)
+
+  const podium = first && second && third ? { first, second, third } : null
 
   return (
     <div className="space-y-6">
@@ -154,8 +155,8 @@ export function EventDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {results.length > 0 ? (
-              results.map((r) => (
+            {sortedResults.length > 0 ? (
+              sortedResults.map((r) => (
                 <tr
                   key={r.player.id}
                   className={`border-t border-gray-700 hover:bg-gray-700/50 transition ${getRowClass(r.position)}`}
