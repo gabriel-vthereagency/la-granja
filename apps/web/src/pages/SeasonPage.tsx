@@ -91,6 +91,11 @@ export function SeasonPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
               <ChampionCard
+                title="Final Seven"
+                player={champions.finalSeven}
+                highlight={true}
+              />
+              <ChampionCard
                 title="Temporada Regular"
                 player={regularChampion}
                 highlight={false}
@@ -99,11 +104,6 @@ export function SeasonPage() {
                 title="Fraca"
                 player={champions.fraca}
                 highlight={false}
-              />
-              <ChampionCard
-                title="Final Seven"
-                player={champions.finalSeven}
-                highlight={true}
               />
             </div>
           )}
