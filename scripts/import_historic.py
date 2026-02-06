@@ -259,6 +259,13 @@ def main() -> None:
     IDX_POINTS = 21
     IDX_BOUNTY_CREDIT = 23
 
+    # Auto-detect "Mesa Final" column from header
+    IDX_MESA_FINAL = None
+    for i, col_name in enumerate(header):
+        if col_name and "mesa final" in col_name.lower():
+            IDX_MESA_FINAL = i
+            break
+
     seasons: dict[tuple[str, int], dict[str, str | int]] = {}
     events: dict[tuple[str, int, int], dict[str, str | int | None]] = {}
     players: dict[str, str] = {}
@@ -422,6 +429,15 @@ def main() -> None:
 
         points = parse_float(get(row, IDX_POINTS)) or 0.0
 
+        # Parse Mesa Final column
+        is_final_table = None
+        if IDX_MESA_FINAL is not None:
+            mesa_final_raw = str(get(row, IDX_MESA_FINAL)).strip().lower()
+            if mesa_final_raw in ("si", "sí", "yes", "true", "1", "x"):
+                is_final_table = True
+            elif mesa_final_raw in ("no", "false", "0", "", "-"):
+                is_final_table = False
+
         results.append(
             {
                 "event_id": event["id"],
@@ -433,6 +449,7 @@ def main() -> None:
                 "position_text": pos_text,
                 "position_label": pos_label,
                 "is_bubble": None if is_bubble is None else str(is_bubble).lower(),
+                "is_final_table": None if is_final_table is None else str(is_final_table).lower(),
                 "bounty_count": bounty_count,
                 "bounty_credit_name": bounty_credit,
             }
@@ -485,6 +502,7 @@ def main() -> None:
             **row,
             "position": row.get("position") if row.get("position") is not None else 0,
             "is_bubble": row.get("is_bubble") if row.get("is_bubble") is not None else "false",
+            "is_final_table": row.get("is_final_table") if row.get("is_final_table") is not None else "false",
             "bounty_count": row.get("bounty_count") if row.get("bounty_count") is not None else 0,
         }
         for row in results
@@ -503,6 +521,7 @@ def main() -> None:
             "position_text",
             "position_label",
             "is_bubble",
+            "is_final_table",
             "bounty_count",
             "bounty_credit_name",
         ],
