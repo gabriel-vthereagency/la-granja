@@ -4,7 +4,6 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter web build",
   "outputDirectory": "apps/web/dist",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- apps/web packages",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
