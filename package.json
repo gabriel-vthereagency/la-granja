@@ -8,6 +8,11 @@
     "build": "pnpm -r build",
     "lint": "pnpm -r lint"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "devDependencies": {
     "typescript": "~5.9.3"
   }
