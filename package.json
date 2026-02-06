@@ -1,0 +1,14 @@
+{
+  "name": "la-granja-poker",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:timer": "pnpm --filter timer dev",
+    "dev:control": "pnpm --filter control dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

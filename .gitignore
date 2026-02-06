@@ -1,0 +1,12 @@
+node_modules/
+dist/
+apps/**/dist/
+apps/**/node_modules/
+.env
+.env.*
+data/BASE DE DATOS RAW.xlsx
+data/raw/
+data/normalized/
+
+# Windows reserved file accidentally created
+nul
