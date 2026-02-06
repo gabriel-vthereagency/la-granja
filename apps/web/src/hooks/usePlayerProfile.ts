@@ -77,7 +77,7 @@ async function fetchPlayerProfile(playerId: string): Promise<PlayerProfile> {
 
   const { data: resultsData } = await supabase
     .from('event_results')
-    .select('position, points, event_id, event_nights(date)')
+    .select('position, points, event_id, is_final_table, event_nights(date)')
     .eq('player_id', playerId)
     .order('event_nights(date)', { ascending: true })
 
@@ -119,7 +119,7 @@ async function fetchPlayerProfile(playerId: string): Promise<PlayerProfile> {
       if (r.position === 4) fourths++
       if (r.position === 5) fifths++
       if (r.position === 6) bubbles++
-      if (r.position <= 9) finalTables++
+      if (r.is_final_table) finalTables++
 
       const totalInEvent = playersPerEvent.get(r.event_id) ?? 0
       if (r.position === totalInEvent && totalInEvent > 1) lastPlaces++
