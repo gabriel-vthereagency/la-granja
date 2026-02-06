@@ -42,7 +42,7 @@ export function useStats() {
           position: number
           points: number
           is_bubble: boolean | null
-          players: { id: string; name: string } | null
+          players: { id: string; name: string } | { id: string; name: string }[] | null
         }> = []
 
         while (true) {
@@ -54,7 +54,11 @@ export function useStats() {
           if (resultsError) throw resultsError
           if (!page || page.length === 0) break
 
-          results.push(...page)
+          const normalized = page.map((row) => ({
+            ...row,
+            players: Array.isArray(row.players) ? row.players[0] ?? null : row.players ?? null,
+          }))
+          results.push(...normalized)
           if (page.length < pageSize) break
           from += pageSize
         }
@@ -84,7 +88,7 @@ export function useStats() {
         }>()
 
         for (const r of results) {
-          const p = r.players as unknown as { id: string; name: string } | null
+          const p = (Array.isArray(r.players) ? r.players[0] : r.players) as { id: string; name: string } | null
           if (!p) continue
           const current = perPlayer.get(r.player_id) ?? {
             name: p.name,

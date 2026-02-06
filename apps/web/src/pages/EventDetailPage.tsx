@@ -44,6 +44,15 @@ export function EventDetailPage() {
   const totalRebuys = results.reduce((sum, r) => sum + r.rebuys, 0)
   const totalPrize = results.reduce((sum, r) => sum + r.prize, 0)
 
+  const podium =
+    results.length >= 3
+      ? {
+          first: results[0]!,
+          second: results[1]!,
+          third: results[2]!,
+        }
+      : null
+
   return (
     <div className="space-y-6">
       <div>
@@ -65,7 +74,7 @@ export function EventDetailPage() {
       </div>
 
       {/* Podio */}
-      {results.length >= 3 && (
+      {podium && (
         <section className="bg-gray-800 rounded-lg p-6">
           <h2 className="text-lg font-medium mb-4 text-center">Podio</h2>
           <div className="flex justify-center items-end gap-4">
@@ -75,12 +84,12 @@ export function EventDetailPage() {
                 <div className="text-3xl">🥈</div>
               </div>
               <Link
-                to={`/jugadores/${results[1].player.id}`}
+                to={`/jugadores/${podium.second.player.id}`}
                 className="font-medium hover:text-green-400 transition"
               >
-                {results[1].player.name}
+                {podium.second.player.name}
               </Link>
-              <div className="text-sm text-gray-400">{formatPoints(results[1].points)} pts</div>
+              <div className="text-sm text-gray-400">{formatPoints(podium.second.points)} pts</div>
             </div>
 
             {/* 1° puesto */}
@@ -89,12 +98,12 @@ export function EventDetailPage() {
                 <div className="text-5xl">🥇</div>
               </div>
               <Link
-                to={`/jugadores/${results[0].player.id}`}
+                to={`/jugadores/${podium.first.player.id}`}
                 className="font-bold text-yellow-400 hover:text-yellow-300 transition"
               >
-                {results[0].player.name}
+                {podium.first.player.name}
               </Link>
-              <div className="text-sm text-yellow-500">{formatPoints(results[0].points)} pts</div>
+              <div className="text-sm text-yellow-500">{formatPoints(podium.first.points)} pts</div>
             </div>
 
             {/* 3° puesto */}
@@ -103,12 +112,12 @@ export function EventDetailPage() {
                 <div className="text-3xl">🥉</div>
               </div>
               <Link
-                to={`/jugadores/${results[2].player.id}`}
+                to={`/jugadores/${podium.third.player.id}`}
                 className="font-medium hover:text-green-400 transition"
               >
-                {results[2].player.name}
+                {podium.third.player.name}
               </Link>
-              <div className="text-sm text-gray-400">{formatPoints(results[2].points)} pts</div>
+              <div className="text-sm text-gray-400">{formatPoints(podium.third.points)} pts</div>
             </div>
           </div>
         </section>

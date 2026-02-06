@@ -52,7 +52,7 @@ export function SeasonPage() {
     upcoming: 'Próximo',
   }
 
-  const regularChampion = champions.regular ?? (standings.length > 0 ? standings[0].player : null)
+  const regularChampion = champions.regular ?? standings[0]?.player ?? null
   const isSummer = season.type === 'summer'
 
   return (

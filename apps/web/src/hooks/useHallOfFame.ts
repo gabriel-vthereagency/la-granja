@@ -62,7 +62,7 @@ export function useHallOfFame() {
           player_id: string
           position: number
           is_bubble: boolean | null
-          players: { id: string; name: string } | null
+          players: { id: string; name: string } | { id: string; name: string }[] | null
         }> = []
 
         while (true) {
@@ -74,7 +74,11 @@ export function useHallOfFame() {
           if (resultsError) throw resultsError
           if (!page || page.length === 0) break
 
-          allResults.push(...page)
+          const normalized = page.map((row) => ({
+            ...row,
+            players: Array.isArray(row.players) ? row.players[0] ?? null : row.players ?? null,
+          }))
+          allResults.push(...normalized)
           if (page.length < pageSize) break
           from += pageSize
         }
@@ -98,7 +102,7 @@ export function useHallOfFame() {
         }>()
 
         for (const r of allResults) {
-          const p = r.players as unknown as { id: string; name: string } | null
+          const p = (Array.isArray(r.players) ? r.players[0] : r.players) as { id: string; name: string } | null
           if (!p) continue
 
           const current = perPlayer.get(r.player_id) ?? {

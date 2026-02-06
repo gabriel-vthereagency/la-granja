@@ -52,11 +52,13 @@ export function HistorialPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-bold">Historial de Torneos</h1>
 
-      {years.map((year) => (
-        <div key={year}>
+      {years.map((year) => {
+        const seasonsForYear = byYear[year] ?? []
+        return (
+          <div key={year}>
           <h2 className="text-lg font-medium text-gray-400 mb-3">{year}</h2>
           <div className="grid gap-3">
-            {byYear[year].map((season) => (
+            {seasonsForYear.map((season) => (
               <Link
                 key={season.id}
                 to={`/historial/${season.id}`}
@@ -77,7 +79,8 @@ export function HistorialPage() {
             ))}
           </div>
         </div>
-      ))}
+        )
+      })}
 
       {seasons.length === 0 && (
         <div className="text-center py-8 text-gray-500">

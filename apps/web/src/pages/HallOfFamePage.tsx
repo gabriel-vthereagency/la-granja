@@ -191,7 +191,9 @@ function groupByTitles(entries: {
 
   const tri = all.filter((p) => p.titles >= 3).sort((a, b) => b.titles - a.titles)
   const bi = all.filter((p) => p.titles === 2).sort((a, b) => a.playerName.localeCompare(b.playerName))
-  const rest = all.filter((p) => p.titles === 1).sort((a, b) => b.seasons[0].localeCompare(a.seasons[0]))
+  const rest = all
+    .filter((p) => p.titles === 1)
+    .sort((a, b) => (b.seasons[0] ?? '').localeCompare(a.seasons[0] ?? ''))
 
   return { tri, bi, rest }
 }
