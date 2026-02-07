@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useHallOfFame } from '../hooks/useHallOfFame'
+import { GlassCard, CardSkeleton, PageHeader } from '../components/ui'
+import { fadeIn, staggerContainer, staggerItem, staggerFast, tableRow } from '../lib/motion'
 
 export function HallOfFamePage() {
   const { champions, shame, loading, error } = useHallOfFame()
@@ -7,8 +10,12 @@ export function HallOfFamePage() {
   if (loading) {
     return (
       <div className="space-y-8">
-        <h1 className="text-2xl font-bold">Hall of Fame</h1>
-        <div className="text-gray-400">Cargando campeones...</div>
+        <PageHeader title="Hall of Fame" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -16,13 +23,12 @@ export function HallOfFamePage() {
   if (error) {
     return (
       <div className="space-y-8">
-        <h1 className="text-2xl font-bold">Hall of Fame</h1>
-        <div className="text-red-400">Error: {error}</div>
+        <PageHeader title="Hall of Fame" />
+        <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
     )
   }
 
-  // Group champions by tournament type for better display
   const finalSevens = champions.filter((c) => c.tournamentType === 'final_seven')
   const summerChampions = champions.filter((c) => c.tournamentType === 'summer_cup' || c.tournamentType === 'summer')
   const fracas = champions.filter((c) => c.tournamentType === 'fraca')
@@ -30,126 +36,159 @@ export function HallOfFamePage() {
   const hofGroups = groupByTitles(finalSevens)
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Hall of Fame</h1>
+    <div className="space-y-10">
+      <PageHeader title="Hall of Fame" />
 
       {/* Hall of Fame - Final Seven */}
       {finalSevens.length > 0 && (
-        <section className="space-y-6">
-          <h2 className="text-xl font-medium text-yellow-500">Hall of Fame (Final Seven)</h2>
+        <motion.section className="space-y-8" variants={fadeIn} initial="initial" animate="animate">
+          <h2 className="text-xl font-medium text-gold">Hall of Fame (Final Seven)</h2>
 
           {hofGroups.tri.length > 0 && (
             <div>
-              <h3 className="text-sm uppercase tracking-widest text-yellow-400 mb-3">TRIHOF</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <h3 className="text-sm uppercase tracking-widest text-gold mb-4">TRIHOF</h3>
+              <motion.div
+                className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
                 {hofGroups.tri.map((player) => (
-                  <HofCard key={player.playerId} player={player} badge="TRIHOF" highlight />
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <HofCard player={player} badge="TRIHOF" highlight />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           )}
 
           {hofGroups.bi.length > 0 && (
             <div>
-              <h3 className="text-sm uppercase tracking-widest text-yellow-300 mb-3">BIHOF</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <h3 className="text-sm uppercase tracking-widest text-gold/70 mb-4">BIHOF</h3>
+              <motion.div
+                className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
                 {hofGroups.bi.map((player) => (
-                  <HofCard key={player.playerId} player={player} badge="BIHOF" />
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <HofCard player={player} badge="BIHOF" />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           )}
 
           {hofGroups.rest.length > 0 && (
             <div>
-              <h3 className="text-sm uppercase tracking-widest text-gray-400 mb-3">HOF</h3>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <h3 className="text-sm uppercase tracking-widest text-text-tertiary mb-4">HOF</h3>
+              <motion.div
+                className="grid grid-cols-2 md:grid-cols-5 gap-4"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
                 {hofGroups.rest.map((player) => (
-                  <HofCard key={player.playerId} player={player} />
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <HofCard player={player} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
           )}
-        </section>
+        </motion.section>
       )}
 
       {/* Summer Champions */}
       {summerChampions.length > 0 && (
-        <section className="space-y-4">
+        <motion.section className="space-y-4" variants={fadeIn} initial="initial" animate="animate">
           <h2 className="text-xl font-medium text-blue-400">Summer Champions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
             {summerChampions
               .slice()
               .sort((a, b) => b.year - a.year)
               .map((entry) => (
-                <ChampionCard key={entry.id} entry={entry} />
+                <motion.div key={entry.id} variants={staggerItem}>
+                  <ChampionCard entry={entry} />
+                </motion.div>
               ))}
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
       )}
 
       {/* Fraca Champions */}
       {fracas.length > 0 && (
-        <section className="space-y-4">
+        <motion.section className="space-y-4" variants={fadeIn} initial="initial" animate="animate">
           <h2 className="text-xl font-medium text-purple-400">Fraca</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
             {fracas
               .slice()
               .sort((a, b) => b.year - a.year)
               .map((entry) => (
-                <ChampionCard key={entry.id} entry={entry} />
+                <motion.div key={entry.id} variants={staggerItem}>
+                  <ChampionCard entry={entry} />
+                </motion.div>
               ))}
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
       )}
 
       {champions.length === 0 && (
-        <div className="text-gray-400 text-center py-8">
+        <GlassCard className="p-8 text-center text-text-secondary">
           No hay campeones registrados
-        </div>
+        </GlassCard>
       )}
 
       {/* Hall of Shame */}
-      <section className="mt-12">
-        <h2 className="text-xl font-medium text-red-400 mb-4">Hall of Shame</h2>
-        <div className="bg-gray-800 rounded-lg overflow-hidden">
+      <motion.section className="mt-4" variants={fadeIn} initial="initial" animate="animate">
+        <h2 className="text-xl font-medium text-accent-light mb-4">Hall of Shame</h2>
+        <div className="bg-glass border border-glass-border rounded-xl overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-700">
+            <thead className="bg-surface-2/80 backdrop-blur-sm">
               <tr>
-                <th className="px-4 py-3 text-left text-sm text-gray-300">
-                  Título
-                </th>
-                <th className="px-4 py-3 text-left text-sm text-gray-300">
-                  Jugador
-                </th>
-                <th className="px-4 py-3 text-right text-sm text-gray-300">
-                  Cantidad
-                </th>
+                <th className="px-4 py-3 text-left text-sm text-text-tertiary">Título</th>
+                <th className="px-4 py-3 text-left text-sm text-text-tertiary">Jugador</th>
+                <th className="px-4 py-3 text-right text-sm text-text-tertiary">Cantidad</th>
               </tr>
             </thead>
-            <tbody>
+            <motion.tbody variants={staggerFast} initial="initial" animate="animate">
               {shame.map((entry) => (
-                <tr key={entry.title} className="border-t border-gray-700">
+                <motion.tr
+                  key={entry.title}
+                  variants={tableRow}
+                  className="border-t border-glass-border hover:bg-glass-hover transition"
+                >
                   <td className="px-4 py-3">{entry.title}</td>
                   <td className="px-4 py-3">
                     {entry.playerId ? (
                       <Link
                         to={`/jugadores/${entry.playerId}`}
-                        className="text-gray-400 hover:text-green-400 transition"
+                        className="text-text-secondary hover:text-accent-light transition"
                       >
                         {entry.playerName}
                       </Link>
                     ) : (
-                      <span className="text-gray-400">{entry.playerName}</span>
+                      <span className="text-text-secondary">{entry.playerName}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right text-red-400">{entry.count}</td>
-                </tr>
+                  <td className="px-4 py-3 text-right text-accent-light">{entry.count}</td>
+                </motion.tr>
               ))}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
-      </section>
+      </motion.section>
     </div>
   )
 }
@@ -207,10 +246,9 @@ function HofCard({
   badge?: string
   highlight?: boolean
 }) {
-  const ring = highlight ? 'ring-2 ring-yellow-500/70' : 'ring-1 ring-gray-700'
   return (
-    <div className={`bg-gray-800 rounded-xl p-4 text-center ${ring}`}>
-      <div className="w-16 h-16 mx-auto rounded-full bg-gray-700 flex items-center justify-center overflow-hidden text-2xl">
+    <GlassCard className={`p-4 text-center ${highlight ? 'ring-1 ring-gold/50 shadow-gold-glow' : ''}`}>
+      <div className="w-16 h-16 mx-auto rounded-full bg-surface-3 flex items-center justify-center overflow-hidden text-2xl">
         {player.avatarUrl ? (
           <img src={player.avatarUrl} alt={player.playerName} className="w-full h-full object-cover" />
         ) : (
@@ -219,10 +257,17 @@ function HofCard({
       </div>
       <div className="mt-3 font-semibold">{player.playerName}</div>
       {badge && (
-        <div className="mt-1 text-xs tracking-widest text-yellow-400">{badge}</div>
+        <motion.div
+          className="mt-1 text-xs tracking-widest text-gold"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          {badge}
+        </motion.div>
       )}
-      <div className="mt-2 text-xs text-gray-400">{player.seasons.join(', ')}</div>
-    </div>
+      <div className="mt-2 text-xs text-text-tertiary">{player.seasons.join(', ')}</div>
+    </GlassCard>
   )
 }
 
@@ -238,8 +283,8 @@ function ChampionCard({
   }
 }) {
   return (
-    <div className="bg-gray-800 rounded-xl p-4 text-center ring-1 ring-gray-700">
-      <div className="w-16 h-16 mx-auto rounded-full bg-gray-700 flex items-center justify-center overflow-hidden text-2xl">
+    <GlassCard className="p-4 text-center">
+      <div className="w-16 h-16 mx-auto rounded-full bg-surface-3 flex items-center justify-center overflow-hidden text-2xl">
         {entry.playerAvatarUrl ? (
           <img src={entry.playerAvatarUrl} alt={entry.playerName} className="w-full h-full object-cover" />
         ) : (
@@ -247,7 +292,7 @@ function ChampionCard({
         )}
       </div>
       <div className="mt-3 font-semibold">{entry.playerName}</div>
-      <div className="mt-1 text-xs text-gray-400">{entry.seasonName ?? entry.year}</div>
-    </div>
+      <div className="mt-1 text-xs text-text-tertiary">{entry.seasonName ?? entry.year}</div>
+    </GlassCard>
   )
 }

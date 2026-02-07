@@ -15,9 +15,11 @@
     ]
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
     "@lagranja/core": "workspace:*",
     "@lagranja/types": "workspace:*",
     "@supabase/supabase-js": "^2.93.3",
+    "framer-motion": "^12.33.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.1.1",

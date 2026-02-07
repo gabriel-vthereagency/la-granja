@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useSeasons } from '../hooks/useSeasons'
+import { GlassCard, CardSkeleton, PageHeader } from '../components/ui'
+import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 
 export function HistorialPage() {
   const { seasons, loading, error } = useSeasons()
@@ -7,8 +10,12 @@ export function HistorialPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Historial de Torneos</h1>
-        <div className="text-gray-400">Cargando temporadas...</div>
+        <PageHeader title="Historial de Torneos" />
+        <div className="grid gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -16,13 +23,12 @@ export function HistorialPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Historial de Torneos</h1>
-        <div className="text-red-400">Error: {error}</div>
+        <PageHeader title="Historial de Torneos" />
+        <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
     )
   }
 
-  // Agrupar por año
   const byYear = seasons.reduce(
     (acc, s) => {
       const bucket = acc[s.year] ?? []
@@ -38,55 +44,63 @@ export function HistorialPage() {
     .sort((a, b) => b - a)
 
   const typeColors: Record<string, string> = {
-    apertura: 'border-l-green-500',
-    clausura: 'border-l-blue-500',
-    summer: 'border-l-yellow-500',
+    apertura: 'border-l-accent',
+    clausura: 'border-l-blue-400',
+    summer: 'border-l-gold',
   }
 
   const statusBadge: Record<string, { label: string; class: string }> = {
-    active: { label: 'En curso', class: 'bg-green-600' },
-    finished: { label: 'Finalizado', class: 'bg-gray-600' },
-    upcoming: { label: 'Próximo', class: 'bg-blue-600' },
+    active: { label: 'En curso', class: 'bg-accent-muted text-accent-light' },
+    finished: { label: 'Finalizado', class: 'bg-surface-4/50 text-text-secondary' },
+    upcoming: { label: 'Próximo', class: 'bg-blue-500/15 text-blue-400' },
   }
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold">Historial de Torneos</h1>
+      <PageHeader title="Historial de Torneos" />
 
       {years.map((year) => {
         const seasonsForYear = byYear[year] ?? []
         return (
-          <div key={year}>
-          <h2 className="text-lg font-medium text-gray-400 mb-3">{year}</h2>
-          <div className="grid gap-3">
-            {seasonsForYear.map((season) => (
-              <Link
-                key={season.id}
-                to={`/historial/${season.id}`}
-                className={`bg-gray-800 hover:bg-gray-700 rounded-lg p-5 transition border-l-4 ${typeColors[season.type] ?? ''}`}
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-medium">{season.name}</h3>
-                    <p className="text-gray-500 text-sm capitalize">{season.type}</p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded text-xs ${statusBadge[season.status]?.class ?? 'bg-gray-700'}`}
-                  >
-                    {statusBadge[season.status]?.label ?? season.status}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+          <motion.div key={year} variants={fadeIn} initial="initial" animate="animate">
+            <h2 className="text-lg font-medium text-text-tertiary mb-3">{year}</h2>
+            <motion.div
+              className="grid gap-3"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {seasonsForYear.map((season) => (
+                <motion.div key={season.id} variants={staggerItem}>
+                  <GlassCard hoverable>
+                    <Link
+                      to={`/historial/${season.id}`}
+                      className={`block p-5 border-l-4 rounded-xl ${typeColors[season.type] ?? ''}`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="text-lg font-medium">{season.name}</h3>
+                          <p className="text-text-tertiary text-sm capitalize">{season.type}</p>
+                        </div>
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusBadge[season.status]?.class ?? 'bg-surface-3 text-text-secondary'}`}
+                        >
+                          {statusBadge[season.status]?.label ?? season.status}
+                        </span>
+                      </div>
+                    </Link>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
         )
       })}
 
       {seasons.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <GlassCard className="p-8 text-center text-text-secondary">
           No hay temporadas registradas
-        </div>
+        </GlassCard>
       )}
     </div>
   )

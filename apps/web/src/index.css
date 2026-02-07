@@ -1,7 +1,48 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+/* ── Design Tokens ─────────────────────────────────────────────────── */
+
+@theme {
+  /* Surfaces */
+  --color-surface-1: #09090b;
+  --color-surface-2: #18181b;
+  --color-surface-3: #27272a;
+  --color-surface-4: #3f3f46;
+
+  /* Glass */
+  --color-glass: rgba(255, 255, 255, 0.05);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-hover: rgba(255, 255, 255, 0.1);
+
+  /* Accent (Red — La Granja identity) */
+  --color-accent: #ef4444;
+  --color-accent-light: #f87171;
+  --color-accent-muted: rgba(239, 68, 68, 0.15);
+
+  /* Semantic */
+  --color-gold: #eab308;
+  --color-silver: #a1a1aa;
+  --color-bronze: #f97316;
+  --color-success: #22c55e;
+
+  /* Text */
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-tertiary: #71717a;
+
+  /* Glow shadows */
+  --shadow-accent-glow: 0 0 20px rgba(239, 68, 68, 0.15);
+  --shadow-gold-glow: 0 0 20px rgba(234, 179, 8, 0.2);
+
+  /* Easing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Base Styles ───────────────────────────────────────────────────── */
 
 :root {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter Variable', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color-scheme: dark;
@@ -14,8 +55,8 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #111827; /* gray-900 */
-  color: #f9fafb; /* gray-50 */
+  background-color: var(--color-surface-1);
+  color: var(--color-text-primary);
 }
 
 #root {
@@ -24,26 +65,35 @@ body {
   flex-direction: column;
 }
 
-/* Custom scrollbar */
+/* ── Scrollbar ─────────────────────────────────────────────────────── */
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1f2937; /* gray-800 */
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #374151; /* gray-700 */
-  border-radius: 4px;
+  background: var(--color-surface-4);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4b5563; /* gray-600 */
+  background: #52525b;
 }
 
-/* Hover state for gray-750 (between 700 and 800) */
-.hover\:bg-gray-750:hover {
-  background-color: #283548;
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-4) transparent;
+}
+
+/* ── Selection ─────────────────────────────────────────────────────── */
+
+::selection {
+  background-color: rgba(239, 68, 68, 0.3);
+  color: #fafafa;
 }

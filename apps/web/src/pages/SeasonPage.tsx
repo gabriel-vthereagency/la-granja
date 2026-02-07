@@ -1,8 +1,11 @@
 import { useParams, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useSeason } from '../hooks/useSeason'
 import { useSeasonEvents } from '../hooks/useSeasonEvents'
 import { useStandings } from '../hooks/useStandings'
 import { StandingsTable } from '../components/StandingsTable'
+import { GlassCard, PageHeader, TableSkeleton } from '../components/ui'
+import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 
 export function SeasonPage() {
   const { seasonId } = useParams()
@@ -16,10 +19,8 @@ export function SeasonPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Link to="/historial" className="text-gray-400 hover:text-white text-sm">
-          ← Volver al historial
-        </Link>
-        <div className="text-gray-400">Cargando temporada...</div>
+        <PageHeader title="Cargando..." backTo="/historial" backLabel="Volver al historial" />
+        <TableSkeleton rows={10} />
       </div>
     )
   }
@@ -27,10 +28,8 @@ export function SeasonPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <Link to="/historial" className="text-gray-400 hover:text-white text-sm">
-          ← Volver al historial
-        </Link>
-        <div className="text-red-400">Error: {error}</div>
+        <PageHeader title="Error" backTo="/historial" backLabel="Volver al historial" />
+        <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
     )
   }
@@ -38,10 +37,8 @@ export function SeasonPage() {
   if (!season) {
     return (
       <div className="space-y-6">
-        <Link to="/historial" className="text-gray-400 hover:text-white text-sm">
-          ← Volver al historial
-        </Link>
-        <div className="text-gray-400">Temporada no encontrada</div>
+        <PageHeader title="No encontrada" backTo="/historial" backLabel="Volver al historial" />
+        <GlassCard className="p-8 text-center text-text-secondary">Temporada no encontrada</GlassCard>
       </div>
     )
   }
@@ -57,103 +54,88 @@ export function SeasonPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link to="/historial" className="text-gray-400 hover:text-white text-sm">
-          ← Volver al historial
-        </Link>
-      </div>
-
-      <div>
-        <h1 className="text-2xl font-bold">{season.name}</h1>
-        <p className="text-gray-400">
-          {statusLabel[season.status] ?? season.status}
-          {season.finishedEvents > 0 && ` • ${season.finishedEvents} fecha${season.finishedEvents !== 1 ? 's' : ''} jugada${season.finishedEvents !== 1 ? 's' : ''}`}
-        </p>
-      </div>
+      <PageHeader
+        title={season.name}
+        subtitle={`${statusLabel[season.status] ?? season.status}${season.finishedEvents > 0 ? ` · ${season.finishedEvents} fecha${season.finishedEvents !== 1 ? 's' : ''} jugada${season.finishedEvents !== 1 ? 's' : ''}` : ''}`}
+        backTo="/historial"
+        backLabel="Volver al historial"
+      />
 
       {/* Header de campeones */}
       {season.status === 'finished' && (
-        <section className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Campeones</h2>
-          {isSummer ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-              <ChampionCard
-                title="Temporada Regular"
-                player={regularChampion}
-                highlight={false}
-              />
-              <ChampionCard
-                title="Summer Champion"
-                player={champions.summerChampion}
-                highlight={true}
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-              <ChampionCard
-                title="Final Seven"
-                player={champions.finalSeven}
-                highlight={true}
-              />
-              <ChampionCard
-                title="Temporada Regular"
-                player={regularChampion}
-                highlight={false}
-              />
-              <ChampionCard
-                title="Fraca"
-                player={champions.fraca}
-                highlight={false}
-              />
-            </div>
-          )}
-        </section>
+        <motion.div variants={fadeIn} initial="initial" animate="animate">
+          <GlassCard as="section" className="p-6">
+            <h2 className="text-lg font-medium mb-4">Campeones</h2>
+            {isSummer ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                <ChampionCard title="Temporada Regular" player={regularChampion} highlight={false} />
+                <ChampionCard title="Summer Champion" player={champions.summerChampion} highlight />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <ChampionCard title="Final Seven" player={champions.finalSeven} highlight />
+                <ChampionCard title="Temporada Regular" player={regularChampion} highlight={false} />
+                <ChampionCard title="Fraca" player={champions.fraca} highlight={false} />
+              </div>
+            )}
+          </GlassCard>
+        </motion.div>
       )}
 
       {/* Tabla de posiciones */}
-      <section className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-lg font-medium mb-4">
-          {season.status === 'finished' ? 'Tabla Final' : 'Tabla de Posiciones'}
-        </h2>
-        {standings.length > 0 ? (
-          <StandingsTable
-            standings={standings}
-            currentEvent={season.finishedEvents}
-            totalEvents={season.totalEvents || undefined}
-          />
-        ) : (
-          <div className="text-gray-400 text-center py-8">
-            No hay resultados registrados
-          </div>
-        )}
-      </section>
+      <motion.section variants={fadeIn} initial="initial" animate="animate">
+        <GlassCard className="p-6">
+          <h2 className="text-lg font-medium mb-4">
+            {season.status === 'finished' ? 'Tabla Final' : 'Tabla de Posiciones'}
+          </h2>
+          {standings.length > 0 ? (
+            <StandingsTable
+              standings={standings}
+              currentEvent={season.finishedEvents}
+              totalEvents={season.totalEvents || undefined}
+            />
+          ) : (
+            <div className="text-text-secondary text-center py-8">
+              No hay resultados registrados
+            </div>
+          )}
+        </GlassCard>
+      </motion.section>
 
       {/* Lista de fechas */}
       {events.length > 0 && (
-        <section className="bg-gray-800 rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4">Fechas</h2>
-          <div className="grid gap-2">
-            {events.map((event) => (
-              <Link
-                key={event.id}
-                to={`/historial/${seasonId}/${event.id}`}
-                className="flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-lg font-medium text-gray-300">#{event.number}</span>
-                  <span className="text-gray-400">
-                    {event.date.toLocaleDateString('es-AR', {
-                      weekday: 'long',
-                      day: 'numeric',
-                      month: 'long',
-                    })}
-                  </span>
-                </div>
-                <EventStatusBadge status={event.status} />
-              </Link>
-            ))}
-          </div>
-        </section>
+        <motion.section variants={fadeIn} initial="initial" animate="animate">
+          <GlassCard className="p-6">
+            <h2 className="text-lg font-medium mb-4">Fechas</h2>
+            <motion.div
+              className="grid gap-2"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {events.map((event) => (
+                <motion.div key={event.id} variants={staggerItem}>
+                  <Link
+                    to={`/historial/${seasonId}/${event.id}`}
+                    className="flex items-center justify-between p-3 bg-glass-hover/50 hover:bg-glass-hover rounded-lg transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-medium text-text-secondary">#{event.number}</span>
+                      <span className="text-text-tertiary">
+                        {event.date.toLocaleDateString('es-AR', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                        })}
+                      </span>
+                    </div>
+                    <EventStatusBadge status={event.status} />
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
+          </GlassCard>
+        </motion.section>
       )}
     </div>
   )
@@ -168,12 +150,12 @@ function ChampionCard({
   player: { name: string; id: string } | null
   highlight: boolean
 }) {
-  const bgClass = highlight ? 'bg-yellow-900/20' : ''
-  const titleClass = highlight ? 'text-yellow-500' : 'text-gray-400'
-  const nameClass = highlight ? 'font-bold text-yellow-400' : 'font-medium'
+  const bgClass = highlight ? 'bg-gold/10' : ''
+  const titleClass = highlight ? 'text-gold' : 'text-text-tertiary'
+  const nameClass = highlight ? 'font-bold text-gold' : 'font-medium'
 
   return (
-    <div className={`${bgClass} rounded p-3`}>
+    <div className={`${bgClass} rounded-lg p-3`}>
       <div className={`text-sm ${titleClass}`}>{title}</div>
       {player ? (
         <Link
@@ -183,7 +165,7 @@ function ChampionCard({
           {player.name}
         </Link>
       ) : (
-        <div className="text-gray-500">-</div>
+        <div className="text-text-tertiary">-</div>
       )}
     </div>
   )
@@ -191,15 +173,15 @@ function ChampionCard({
 
 function EventStatusBadge({ status }: { status: string }) {
   const styles: Record<string, { label: string; class: string }> = {
-    finished: { label: 'Finalizado', class: 'bg-gray-600 text-gray-300' },
-    live: { label: 'En vivo', class: 'bg-green-600 text-white' },
-    scheduled: { label: 'Próximo', class: 'bg-blue-600 text-white' },
+    finished: { label: 'Finalizado', class: 'bg-surface-4/50 text-text-secondary' },
+    live: { label: 'En vivo', class: 'bg-success/15 text-success' },
+    scheduled: { label: 'Próximo', class: 'bg-blue-500/15 text-blue-400' },
   }
 
-  const style = styles[status] ?? { label: status, class: 'bg-gray-700' }
+  const style = styles[status] ?? { label: status, class: 'bg-surface-3 text-text-secondary' }
 
   return (
-    <span className={`px-2 py-1 rounded text-xs ${style.class}`}>
+    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${style.class}`}>
       {style.label}
     </span>
   )

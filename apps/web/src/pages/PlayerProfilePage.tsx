@@ -1,6 +1,9 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { usePlayerProfile } from '../hooks/usePlayerProfile'
 import { formatPoints } from '../utils/formatPoints'
+import { GlassCard, AnimatedCounter, PageHeader, CardSkeleton } from '../components/ui'
+import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 
 export function PlayerProfilePage() {
   const { playerId } = useParams()
@@ -9,10 +12,19 @@ export function PlayerProfilePage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Link to="/jugadores" className="text-gray-400 hover:text-white text-sm">
-          ← Volver a jugadores
-        </Link>
-        <div className="text-gray-400">Cargando perfil...</div>
+        <PageHeader title="Cargando..." backTo="/jugadores" backLabel="Volver a jugadores" />
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="w-24 h-24 rounded-full bg-surface-3/60 animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-6 w-40 rounded bg-surface-3/60 animate-pulse" />
+            <div className="h-4 w-24 rounded bg-surface-3/60 animate-pulse" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     )
   }
@@ -20,12 +32,10 @@ export function PlayerProfilePage() {
   if (error || !profile) {
     return (
       <div className="space-y-6">
-        <Link to="/jugadores" className="text-gray-400 hover:text-white text-sm">
-          ← Volver a jugadores
-        </Link>
-        <div className="text-red-400">
+        <PageHeader title="Error" backTo="/jugadores" backLabel="Volver a jugadores" />
+        <GlassCard className="p-8 text-center text-accent-light">
           {error ?? 'Jugador no encontrado'}
-        </div>
+        </GlassCard>
       </div>
     )
   }
@@ -34,129 +44,158 @@ export function PlayerProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link to="/jugadores" className="text-gray-400 hover:text-white text-sm">
-          ← Volver a jugadores
-        </Link>
-      </div>
+      <PageHeader title={player.name} backTo="/jugadores" backLabel="Volver a jugadores" />
 
       {/* Header del perfil */}
-      <div className="bg-gray-800 rounded-lg p-6 flex flex-col md:flex-row items-center gap-6">
-        <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center text-5xl shrink-0">
-          {player.avatarUrl ? (
-            <img
-              src={player.avatarUrl}
-              alt={player.name}
-              className="w-full h-full rounded-full object-cover"
-            />
-          ) : (
-            '🐵'
-          )}
-        </div>
-        <div className="text-center md:text-left">
-          <h1 className="text-2xl font-bold">{player.name}</h1>
-          {player.nickname && (
-            <p className="text-gray-400">"{player.nickname}"</p>
-          )}
-          {aliases.length > 0 && (
-            <p className="text-gray-500 text-sm">
-              Aliases: {aliases.join(', ')}
-            </p>
-          )}
-          {favoriteHand && (
-            <p className="text-gray-500 text-sm italic mt-2">
-              Mano favorita: {favoriteHand}
-            </p>
-          )}
-        </div>
-      </div>
+      <motion.div variants={fadeIn} initial="initial" animate="animate">
+        <GlassCard className="p-6 flex flex-col md:flex-row items-center gap-6">
+          <div className="w-24 h-24 bg-surface-3 rounded-full flex items-center justify-center text-5xl shrink-0 ring-2 ring-glass-border">
+            {player.avatarUrl ? (
+              <img
+                src={player.avatarUrl}
+                alt={player.name}
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              '🐵'
+            )}
+          </div>
+          <div className="text-center md:text-left">
+            <h1 className="text-2xl font-bold tracking-tight">{player.name}</h1>
+            {player.nickname && (
+              <p className="text-text-secondary">"{player.nickname}"</p>
+            )}
+            {aliases.length > 0 && (
+              <p className="text-text-tertiary text-sm">
+                Aliases: {aliases.join(', ')}
+              </p>
+            )}
+            {favoriteHand && (
+              <p className="text-text-tertiary text-sm italic mt-2">
+                Mano favorita: {favoriteHand}
+              </p>
+            )}
+          </div>
+        </GlassCard>
+      </motion.div>
 
-      {/* Badges HOF - TODO: reemplazar por PNGs */}
+      {/* Badges HOF */}
       {stats.finalSevens > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <Badge label={`${stats.finalSevens}x Final Seven`} color="bg-purple-700" />
-        </div>
+        <motion.div
+          className="flex flex-wrap gap-2"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <span className="px-3 py-1 bg-accent-muted text-accent-light rounded-full text-sm font-medium">
+            {stats.finalSevens}x Final Seven
+          </span>
+        </motion.div>
       )}
 
       {/* Stats principales */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          label="Miembro desde"
-          value={memberSince ? formatDate(memberSince) : '-'}
-        />
-        <StatCard
-          label="Fechas jugadas"
-          value={stats.totalEvents.toString()}
-        />
-        <StatCard
-          label="Puntos totales"
-          value={formatPoints(stats.totalPoints)}
-          color="text-green-400"
-        />
-        <StatCard
-          label="Efectividad"
-          value={stats.effectiveness.toFixed(2)}
-          color="text-blue-400"
-        />
-      </div>
+      <motion.div
+        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <motion.div variants={staggerItem}>
+          <GlassCard className="p-4 text-center">
+            <div className="text-2xl font-bold text-text-primary">
+              {memberSince ? formatDate(memberSince) : '-'}
+            </div>
+            <div className="text-text-tertiary text-sm">Miembro desde</div>
+          </GlassCard>
+        </motion.div>
+        <motion.div variants={staggerItem}>
+          <GlassCard className="p-4 text-center">
+            <AnimatedCounter
+              value={stats.totalEvents}
+              className="text-2xl font-bold text-text-primary"
+            />
+            <div className="text-text-tertiary text-sm">Fechas jugadas</div>
+          </GlassCard>
+        </motion.div>
+        <motion.div variants={staggerItem}>
+          <GlassCard className="p-4 text-center">
+            <AnimatedCounter
+              value={stats.totalPoints}
+              format={(v) => formatPoints(Math.round(v))}
+              className="text-2xl font-bold text-success"
+            />
+            <div className="text-text-tertiary text-sm">Puntos totales</div>
+          </GlassCard>
+        </motion.div>
+        <motion.div variants={staggerItem}>
+          <GlassCard className="p-4 text-center">
+            <AnimatedCounter
+              value={stats.effectiveness}
+              format={(v) => v.toFixed(2)}
+              className="text-2xl font-bold text-blue-400"
+            />
+            <div className="text-text-tertiary text-sm">Efectividad</div>
+          </GlassCard>
+        </motion.div>
+      </motion.div>
 
       {/* Posiciones */}
-      <div>
-        <h2 className="text-lg font-medium mb-3 text-gray-300">Posiciones</h2>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-          <StatCard label="🥇 Oros" value={stats.golds.toString()} color="text-yellow-500" />
-          <StatCard label="🥈 Platas" value={stats.silvers.toString()} color="text-gray-300" />
-          <StatCard label="🥉 Bronces" value={stats.bronzes.toString()} color="text-orange-400" />
-          <StatCard label="4°" value={stats.fourths.toString()} color="text-gray-400" />
-          <StatCard label="5°" value={stats.fifths.toString()} color="text-gray-400" />
-          <StatCard label="6° Burbuja" value={stats.bubbles.toString()} color="text-gray-500" />
-        </div>
-      </div>
+      <motion.div variants={fadeIn} initial="initial" animate="animate">
+        <h2 className="text-lg font-medium mb-3 text-text-secondary">Posiciones</h2>
+        <motion.div
+          className="grid grid-cols-3 md:grid-cols-6 gap-3"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          {[
+            { label: '🥇 Oros', value: stats.golds, color: 'text-gold' },
+            { label: '🥈 Platas', value: stats.silvers, color: 'text-silver' },
+            { label: '🥉 Bronces', value: stats.bronzes, color: 'text-bronze' },
+            { label: '4°', value: stats.fourths, color: 'text-text-secondary' },
+            { label: '5°', value: stats.fifths, color: 'text-text-secondary' },
+            { label: '6° Burbuja', value: stats.bubbles, color: 'text-text-tertiary' },
+          ].map((s) => (
+            <motion.div key={s.label} variants={staggerItem}>
+              <GlassCard className="p-4 text-center">
+                <AnimatedCounter value={s.value} className={`text-2xl font-bold ${s.color}`} />
+                <div className="text-text-tertiary text-sm">{s.label}</div>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
 
       {/* Otros stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatCard
-          label="Mesas finales"
-          value={stats.finalTables.toString()}
-          color="text-purple-400"
-        />
-        <StatCard
-          label="Últimos puestos"
-          value={stats.lastPlaces.toString()}
-          color="text-red-400"
-        />
-        <StatCard
-          label="Podios (top 5)"
-          value={(stats.golds + stats.silvers + stats.bronzes + stats.fourths + stats.fifths).toString()}
-          color="text-blue-400"
-        />
-      </div>
+      <motion.div
+        className="grid grid-cols-2 md:grid-cols-3 gap-4"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
+        <motion.div variants={staggerItem}>
+          <GlassCard className="p-4 text-center">
+            <AnimatedCounter value={stats.finalTables} className="text-2xl font-bold text-purple-400" />
+            <div className="text-text-tertiary text-sm">Mesas finales</div>
+          </GlassCard>
+        </motion.div>
+        <motion.div variants={staggerItem}>
+          <GlassCard className="p-4 text-center">
+            <AnimatedCounter value={stats.lastPlaces} className="text-2xl font-bold text-accent-light" />
+            <div className="text-text-tertiary text-sm">Últimos puestos</div>
+          </GlassCard>
+        </motion.div>
+        <motion.div variants={staggerItem}>
+          <GlassCard className="p-4 text-center">
+            <AnimatedCounter
+              value={stats.golds + stats.silvers + stats.bronzes + stats.fourths + stats.fifths}
+              className="text-2xl font-bold text-blue-400"
+            />
+            <div className="text-text-tertiary text-sm">Podios (top 5)</div>
+          </GlassCard>
+        </motion.div>
+      </motion.div>
     </div>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  color = 'text-white',
-}: {
-  label: string
-  value: string
-  color?: string
-}) {
-  return (
-    <div className="bg-gray-800 rounded-lg p-4 text-center">
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
-      <div className="text-gray-400 text-sm">{label}</div>
-    </div>
-  )
-}
-
-function Badge({ label, color }: { label: string; color: string }) {
-  return (
-    <span className={`px-3 py-1 ${color} rounded-full text-sm text-white`}>
-      {label}
-    </span>
   )
 }
 
