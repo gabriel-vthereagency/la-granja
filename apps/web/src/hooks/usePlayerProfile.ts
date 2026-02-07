@@ -118,7 +118,7 @@ async function fetchPlayerProfile(playerId: string): Promise<PlayerProfile> {
       if (r.position === 3) bronzes++
       if (r.position === 4) fourths++
       if (r.position === 5) fifths++
-      if (r.position === 6 || r.is_bubble === true) bubbles++
+      if (r.is_bubble === true || (r.is_bubble == null && r.position === 6)) bubbles++
       // Hybrid: use explicit value if set, otherwise calculate from position
       if (r.is_final_table ?? (r.position !== null && r.position <= 9)) finalTables++
 

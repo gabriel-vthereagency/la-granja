@@ -128,7 +128,7 @@ async function fetchStandings(seasonId: string): Promise<PlayerStanding[]> {
     if (r.position === 3) current.bronzes++
     if (r.position === 4) current.fourths++
     if (r.position === 5) current.fifths++
-    if (r.position === 6 || (r as Record<string, unknown>).is_bubble === true) current.bubbles++
+    if ((r as Record<string, unknown>).is_bubble === true || ((r as Record<string, unknown>).is_bubble == null && r.position === 6)) current.bubbles++
     if (r.position <= 9) current.finalTables++
 
     const totalInEvent = playersPerEvent.get(r.event_id) ?? 0
