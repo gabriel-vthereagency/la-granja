@@ -162,7 +162,7 @@ async function fetchShameDataFallback(): Promise<ShameEntry[]> {
     const pos = Number(r.position)
     const maxPos = maxPositionByEvent.get(r.event_id) ?? 0
     if (pos > 0 && pos === maxPos) current.lastPlaces += 1
-    if (r.is_bubble === true) current.bubbles += 1
+    if (r.is_bubble === true || pos === 6) current.bubbles += 1
     if (pos === 2) current.secondPlaces += 1
 
     perPlayer.set(r.player_id, current)
