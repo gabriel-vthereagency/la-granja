@@ -1,31 +1,93 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useHallOfFame } from '../hooks/useHallOfFame'
-import { GlassCard, CardSkeleton, PageHeader } from '../components/ui'
+import { GlassCard, PageHeader, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem, staggerFast, tableRow } from '../lib/motion'
+
+function getBadgeSrc(titles: number): string {
+  if (titles >= 3) return '/trifoh.png'
+  if (titles === 2) return '/bihof.png'
+  if (titles === 1) return '/hof.png'
+  return '/mono.png'
+}
+
+interface TierConfig {
+  gradient: string
+  radial: string
+  glow: string
+  label: string
+  labelColor: string
+  borderHover: string
+  pillBorder: string
+}
+
+type TierKey = 'tri' | 'bi' | 'hof'
+type ChampionColorKey = 'blue' | 'purple'
+
+const TIER_CONFIGS: Record<TierKey, TierConfig> = {
+  tri: {
+    gradient: 'from-yellow-500/20 via-surface-2/80 to-surface-1',
+    radial: 'rgba(234,179,8,0.15)',
+    glow: 'rgba(234,179,8,0.15)',
+    label: 'TRIHOF',
+    labelColor: 'text-gold',
+    borderHover: 'hover:border-yellow-500/40',
+    pillBorder: 'border-yellow-500/20',
+  },
+  bi: {
+    gradient: 'from-zinc-400/20 via-surface-2/80 to-surface-1',
+    radial: 'rgba(161,161,170,0.15)',
+    glow: 'rgba(161,161,170,0.15)',
+    label: 'BIHOF',
+    labelColor: 'text-silver',
+    borderHover: 'hover:border-zinc-400/40',
+    pillBorder: 'border-zinc-400/20',
+  },
+  hof: {
+    gradient: 'from-accent/15 via-surface-2/80 to-surface-1',
+    radial: 'rgba(239,68,68,0.12)',
+    glow: 'rgba(239,68,68,0.12)',
+    label: 'HOF',
+    labelColor: 'text-accent-light',
+    borderHover: 'hover:border-accent/40',
+    pillBorder: 'border-white/[0.1]',
+  },
+}
 
 export function HallOfFamePage() {
   const { champions, shame, loading, error } = useHallOfFame()
 
   if (loading) {
     return (
+      <PageContainer>
       <div className="space-y-8">
         <PageHeader title="Hall of Fame" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Desktop skeleton */}
+        <div className="hidden md:flex md:flex-wrap md:justify-center gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <CardSkeleton key={i} />
+            <div key={i} className="rounded-xl bg-surface-3/60 animate-pulse h-[380px] w-[280px]" />
+          ))}
+        </div>
+        {/* Mobile skeleton */}
+        <div className="md:hidden space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-xl bg-surface-3/60 animate-pulse h-[110px]" />
           ))}
         </div>
       </div>
+      </PageContainer>
     )
   }
 
   if (error) {
     return (
+      <PageContainer>
       <div className="space-y-8">
         <PageHeader title="Hall of Fame" />
         <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
@@ -36,6 +98,7 @@ export function HallOfFamePage() {
   const hofGroups = groupByTitles(finalSevens)
 
   return (
+    <PageContainer>
     <div className="space-y-10">
       <PageHeader title="Hall of Fame" />
 
@@ -45,57 +108,104 @@ export function HallOfFamePage() {
           <h2 className="text-xl font-medium text-gold">Hall of Fame (Final Seven)</h2>
 
           {hofGroups.tri.length > 0 && (
-            <div>
-              <h3 className="text-sm uppercase tracking-widest text-gold mb-4">TRIHOF</h3>
+            <>
+              {/* Desktop */}
               <motion.div
-                className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                className="hidden md:flex md:flex-wrap md:justify-center gap-4"
                 variants={staggerContainer}
                 initial="initial"
                 animate="animate"
               >
                 {hofGroups.tri.map((player) => (
                   <motion.div key={player.playerId} variants={staggerItem}>
-                    <HofCard player={player} badge="TRIHOF" highlight />
+                    <HofDesktopCard player={player} tier="tri" />
                   </motion.div>
                 ))}
               </motion.div>
-            </div>
+              {/* Mobile */}
+              <motion.div
+                className="md:hidden space-y-2"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                {hofGroups.tri.map((player) => (
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <HofMobileCard player={player} tier="tri" />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </>
+          )}
+
+          {hofGroups.tri.length > 0 && hofGroups.bi.length > 0 && (
+            <div className="border-t border-glass-border" />
           )}
 
           {hofGroups.bi.length > 0 && (
-            <div>
-              <h3 className="text-sm uppercase tracking-widest text-gold/70 mb-4">BIHOF</h3>
+            <>
+              {/* Desktop */}
               <motion.div
-                className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                className="hidden md:flex md:flex-wrap md:justify-center gap-4"
                 variants={staggerContainer}
                 initial="initial"
                 animate="animate"
               >
                 {hofGroups.bi.map((player) => (
                   <motion.div key={player.playerId} variants={staggerItem}>
-                    <HofCard player={player} badge="BIHOF" />
+                    <HofDesktopCard player={player} tier="bi" />
                   </motion.div>
                 ))}
               </motion.div>
-            </div>
+              {/* Mobile */}
+              <motion.div
+                className="md:hidden space-y-2"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                {hofGroups.bi.map((player) => (
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <HofMobileCard player={player} tier="bi" />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </>
+          )}
+
+          {(hofGroups.tri.length > 0 || hofGroups.bi.length > 0) && hofGroups.rest.length > 0 && (
+            <div className="border-t border-glass-border" />
           )}
 
           {hofGroups.rest.length > 0 && (
-            <div>
-              <h3 className="text-sm uppercase tracking-widest text-text-tertiary mb-4">HOF</h3>
+            <>
+              {/* Desktop */}
               <motion.div
-                className="grid grid-cols-2 md:grid-cols-5 gap-4"
+                className="hidden md:flex md:flex-wrap md:justify-center gap-4"
                 variants={staggerContainer}
                 initial="initial"
                 animate="animate"
               >
                 {hofGroups.rest.map((player) => (
                   <motion.div key={player.playerId} variants={staggerItem}>
-                    <HofCard player={player} />
+                    <HofDesktopCard player={player} tier="hof" />
                   </motion.div>
                 ))}
               </motion.div>
-            </div>
+              {/* Mobile */}
+              <motion.div
+                className="md:hidden space-y-2"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                {hofGroups.rest.map((player) => (
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <HofMobileCard player={player} tier="hof" />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </>
           )}
         </motion.section>
       )}
@@ -104,8 +214,9 @@ export function HallOfFamePage() {
       {summerChampions.length > 0 && (
         <motion.section className="space-y-4" variants={fadeIn} initial="initial" animate="animate">
           <h2 className="text-xl font-medium text-blue-400">Summer Champions</h2>
+          {/* Desktop */}
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            className="hidden md:flex md:flex-wrap md:justify-center gap-4"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
@@ -115,7 +226,23 @@ export function HallOfFamePage() {
               .sort((a, b) => b.year - a.year)
               .map((entry) => (
                 <motion.div key={entry.id} variants={staggerItem}>
-                  <ChampionCard entry={entry} />
+                  <ChampionDesktopCard entry={entry} accentColor="blue" />
+                </motion.div>
+              ))}
+          </motion.div>
+          {/* Mobile */}
+          <motion.div
+            className="md:hidden space-y-2"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {summerChampions
+              .slice()
+              .sort((a, b) => b.year - a.year)
+              .map((entry) => (
+                <motion.div key={entry.id} variants={staggerItem}>
+                  <ChampionMobileCard entry={entry} accentColor="blue" />
                 </motion.div>
               ))}
           </motion.div>
@@ -126,8 +253,9 @@ export function HallOfFamePage() {
       {fracas.length > 0 && (
         <motion.section className="space-y-4" variants={fadeIn} initial="initial" animate="animate">
           <h2 className="text-xl font-medium text-purple-400">Fraca</h2>
+          {/* Desktop */}
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            className="hidden md:flex md:flex-wrap md:justify-center gap-4"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
@@ -137,7 +265,23 @@ export function HallOfFamePage() {
               .sort((a, b) => b.year - a.year)
               .map((entry) => (
                 <motion.div key={entry.id} variants={staggerItem}>
-                  <ChampionCard entry={entry} />
+                  <ChampionDesktopCard entry={entry} accentColor="purple" />
+                </motion.div>
+              ))}
+          </motion.div>
+          {/* Mobile */}
+          <motion.div
+            className="md:hidden space-y-2"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {fracas
+              .slice()
+              .sort((a, b) => b.year - a.year)
+              .map((entry) => (
+                <motion.div key={entry.id} variants={staggerItem}>
+                  <ChampionMobileCard entry={entry} accentColor="purple" />
                 </motion.div>
               ))}
           </motion.div>
@@ -190,8 +334,11 @@ export function HallOfFamePage() {
         </div>
       </motion.section>
     </div>
+    </PageContainer>
   )
 }
+
+/* ─── Data helpers ─── */
 
 type HofPlayerGroup = {
   playerId: string
@@ -199,6 +346,7 @@ type HofPlayerGroup = {
   avatarUrl: string | null
   titles: number
   seasons: string[]
+  maxYear: number
 }
 
 function groupByTitles(entries: {
@@ -216,10 +364,12 @@ function groupByTitles(entries: {
       avatarUrl: entry.playerAvatarUrl ?? null,
       seasons: [],
       titles: 0,
+      maxYear: 0,
     }
     const label = entry.seasonName ?? entry.year.toString()
     current.seasons.push(label)
     current.titles += 1
+    if (entry.year > current.maxYear) current.maxYear = entry.year
     byPlayer.set(entry.playerId, current)
   }
 
@@ -229,70 +379,299 @@ function groupByTitles(entries: {
   }))
 
   const tri = all.filter((p) => p.titles >= 3).sort((a, b) => b.titles - a.titles)
-  const bi = all.filter((p) => p.titles === 2).sort((a, b) => a.playerName.localeCompare(b.playerName))
+  const bi = all.filter((p) => p.titles === 2).sort((a, b) => b.maxYear - a.maxYear)
   const rest = all
     .filter((p) => p.titles === 1)
-    .sort((a, b) => (b.seasons[0] ?? '').localeCompare(a.seasons[0] ?? ''))
+    .sort((a, b) => b.maxYear - a.maxYear)
 
   return { tri, bi, rest }
 }
 
-function HofCard({
-  player,
-  badge,
-  highlight = false,
-}: {
-  player: HofPlayerGroup
-  badge?: string
-  highlight?: boolean
-}) {
+/* ─── HOF Desktop Card ─── */
+
+function HofDesktopCard({ player, tier }: { player: HofPlayerGroup; tier: TierKey }) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = `/Players/${player.playerId}.png`
+  const badgeSrc = getBadgeSrc(player.titles)
+  const config = TIER_CONFIGS[tier]
+
   return (
-    <GlassCard className={`p-4 text-center ${highlight ? 'ring-1 ring-gold/50 shadow-gold-glow' : ''}`}>
-      <div className="w-16 h-16 mx-auto rounded-full bg-surface-3 flex items-center justify-center overflow-hidden text-2xl">
-        {player.avatarUrl ? (
-          <img src={player.avatarUrl} alt={player.playerName} className="w-full h-full object-cover" />
+    <Link
+      to={`/jugadores/${player.playerId}`}
+      className={`group relative block rounded-xl overflow-hidden border border-glass-border ${config.borderHover} transition-all duration-300 h-[380px] w-[280px]`}
+    >
+      {/* Tier gradient background */}
+      <div className={`absolute inset-0 bg-gradient-to-b ${config.gradient}`} />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse at 50% 30%, ${config.radial} 0%, transparent 70%)`,
+        }}
+      />
+
+      {/* Badge — top-left */}
+      <img
+        src={badgeSrc}
+        alt=""
+        className="absolute top-3 left-3 w-14 h-14 object-contain z-10 drop-shadow-lg"
+      />
+
+      {/* Titles count — top-right */}
+      <div className={`absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-glass/80 border border-glass-border text-sm font-bold ${config.labelColor}`}>
+        {player.titles}x
+      </div>
+
+      {/* Player photo */}
+      <div className="absolute inset-0 flex items-end justify-center pb-[100px]">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt={player.playerName}
+            loading="lazy"
+            className="h-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300"
+            onError={() => setPhotoError(true)}
+          />
         ) : (
-          '🐵'
+          <span className="text-8xl opacity-30 mb-8">🐵</span>
         )}
       </div>
-      <div className="mt-3 font-semibold">{player.playerName}</div>
-      {badge && (
-        <motion.div
-          className="mt-1 text-xs tracking-widest text-gold"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          {badge}
-        </motion.div>
-      )}
-      <div className="mt-2 text-xs text-text-tertiary">{player.seasons.join(', ')}</div>
-    </GlassCard>
+
+      {/* Glass info panel */}
+      <div className="absolute bottom-3 left-3 right-3 rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/[0.1] p-3 pt-4 text-center space-y-1.5 overflow-hidden">
+        {/* Glow */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(ellipse at 50% 0%, ${config.glow} 0%, transparent 60%)`,
+          }}
+        />
+        {/* Name pill */}
+        <div className={`relative inline-flex items-center justify-center px-5 py-1 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.15] to-white/[0.08] border ${config.pillBorder} shadow-[0_0_20px_rgba(255,255,255,0.06)]`}>
+          <h3 className="text-lg font-bold text-text-primary tracking-tight">{player.playerName}</h3>
+        </div>
+        {/* Tier label */}
+        <p className={`relative text-xs font-semibold tracking-widest ${config.labelColor}`}>
+          {config.label}
+        </p>
+        {/* Seasons */}
+        <p className="relative text-text-tertiary text-xs">
+          {player.seasons.join(', ')}
+        </p>
+      </div>
+    </Link>
   )
 }
 
-function ChampionCard({
-  entry,
-}: {
-  entry: {
-    year: number
-    playerName: string
-    playerId: string
-    playerAvatarUrl: string | null
-    seasonName: string | null
-  }
-}) {
+/* ─── HOF Mobile Card ─── */
+
+function HofMobileCard({ player, tier }: { player: HofPlayerGroup; tier: TierKey }) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = `/Players/${player.playerId}.png`
+  const badgeSrc = getBadgeSrc(player.titles)
+  const config = TIER_CONFIGS[tier]
+
   return (
-    <GlassCard className="p-4 text-center">
-      <div className="w-16 h-16 mx-auto rounded-full bg-surface-3 flex items-center justify-center overflow-hidden text-2xl">
-        {entry.playerAvatarUrl ? (
-          <img src={entry.playerAvatarUrl} alt={entry.playerName} className="w-full h-full object-cover" />
+    <Link
+      to={`/jugadores/${player.playerId}`}
+      className={`group relative block rounded-xl overflow-hidden border border-glass-border ${config.borderHover} transition-all duration-300 h-[110px]`}
+    >
+      {/* Tier gradient background */}
+      <div className={`absolute inset-0 bg-gradient-to-b ${config.gradient}`} />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse at 80% 50%, ${config.radial} 0%, transparent 60%)`,
+        }}
+      />
+
+      {/* Left info column */}
+      <div className="absolute left-3 top-2.5 bottom-2.5 right-28 z-10 flex flex-col justify-between">
+        {/* Name pill + tier + seasons — top */}
+        <div>
+          <div className={`inline-flex self-start items-center px-3 py-0.5 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.15] to-white/[0.08] border ${config.pillBorder}`}>
+            <span className="font-bold text-text-primary text-sm truncate">{player.playerName}</span>
+          </div>
+          <div className={`text-[11px] font-semibold tracking-widest mt-1 ml-1 ${config.labelColor}`}>
+            {config.label}
+          </div>
+        </div>
+        {/* Seasons — bottom */}
+        <div className="text-text-tertiary text-[11px] truncate">
+          {player.seasons.join(', ')}
+        </div>
+      </div>
+
+      {/* Badge — center */}
+      <img
+        src={badgeSrc}
+        alt=""
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 object-contain z-10 drop-shadow-lg opacity-60"
+      />
+
+      {/* Player photo — right side */}
+      <div className="absolute right-0 top-0 bottom-0 w-28 overflow-hidden">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt=""
+            loading="lazy"
+            className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
+            onError={() => setPhotoError(true)}
+          />
         ) : (
-          '🐵'
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl opacity-30">🐵</span>
+          </div>
         )}
       </div>
-      <div className="mt-3 font-semibold">{entry.playerName}</div>
-      <div className="mt-1 text-xs text-text-tertiary">{entry.seasonName ?? entry.year}</div>
-    </GlassCard>
+    </Link>
+  )
+}
+
+/* ─── Champion Desktop Card (Summer / Fraca) ─── */
+
+const CHAMPION_COLORS: Record<ChampionColorKey, { gradient: string; radial: string; glow: string; labelColor: string; borderHover: string; pillBorder: string }> = {
+  blue: {
+    gradient: 'from-blue-500/15 via-surface-2/80 to-surface-1',
+    radial: 'rgba(59,130,246,0.12)',
+    glow: 'rgba(59,130,246,0.12)',
+    labelColor: 'text-blue-400',
+    borderHover: 'hover:border-blue-500/40',
+    pillBorder: 'border-blue-500/20',
+  },
+  purple: {
+    gradient: 'from-purple-500/15 via-surface-2/80 to-surface-1',
+    radial: 'rgba(168,85,247,0.12)',
+    glow: 'rgba(168,85,247,0.12)',
+    labelColor: 'text-purple-400',
+    borderHover: 'hover:border-purple-500/40',
+    pillBorder: 'border-purple-500/20',
+  },
+}
+
+function ChampionDesktopCard({
+  entry,
+  accentColor,
+}: {
+  entry: { year: number; playerName: string; playerId: string; seasonName: string | null }
+  accentColor: ChampionColorKey
+}) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = `/Players/${entry.playerId}.png`
+  const colors = CHAMPION_COLORS[accentColor]
+
+  return (
+    <Link
+      to={`/jugadores/${entry.playerId}`}
+      className={`group relative block rounded-xl overflow-hidden border border-glass-border ${colors.borderHover} transition-all duration-300 h-[380px] w-[280px]`}
+    >
+      {/* Gradient background */}
+      <div className={`absolute inset-0 bg-gradient-to-b ${colors.gradient}`} />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse at 50% 30%, ${colors.radial} 0%, transparent 70%)`,
+        }}
+      />
+
+      {/* Year badge — top-right */}
+      <div className={`absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-glass/80 border border-glass-border text-sm font-bold ${colors.labelColor}`}>
+        {entry.year}
+      </div>
+
+      {/* Player photo */}
+      <div className="absolute inset-0 flex items-end justify-center pb-[90px]">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt={entry.playerName}
+            loading="lazy"
+            className="h-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
+          <span className="text-8xl opacity-30 mb-8">🐵</span>
+        )}
+      </div>
+
+      {/* Glass info panel */}
+      <div className="absolute bottom-3 left-3 right-3 rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/[0.1] p-3 pt-4 text-center space-y-1 overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(ellipse at 50% 0%, ${colors.glow} 0%, transparent 60%)`,
+          }}
+        />
+        {/* Name pill */}
+        <div className={`relative inline-flex items-center justify-center px-5 py-1 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.15] to-white/[0.08] border ${colors.pillBorder} shadow-[0_0_20px_rgba(255,255,255,0.06)]`}>
+          <h3 className="text-lg font-bold text-text-primary tracking-tight">{entry.playerName}</h3>
+        </div>
+        <p className="relative text-text-tertiary text-xs">
+          {entry.seasonName ?? entry.year}
+        </p>
+      </div>
+    </Link>
+  )
+}
+
+/* ─── Champion Mobile Card (Summer / Fraca) ─── */
+
+function ChampionMobileCard({
+  entry,
+  accentColor,
+}: {
+  entry: { year: number; playerName: string; playerId: string; seasonName: string | null }
+  accentColor: ChampionColorKey
+}) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = `/Players/${entry.playerId}.png`
+  const colors = CHAMPION_COLORS[accentColor]
+
+  return (
+    <Link
+      to={`/jugadores/${entry.playerId}`}
+      className={`group relative block rounded-xl overflow-hidden border border-glass-border ${colors.borderHover} transition-all duration-300 h-[110px]`}
+    >
+      {/* Gradient background */}
+      <div className={`absolute inset-0 bg-gradient-to-b ${colors.gradient}`} />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse at 80% 50%, ${colors.radial} 0%, transparent 60%)`,
+        }}
+      />
+
+      {/* Left info */}
+      <div className="absolute left-3 top-2.5 bottom-2.5 right-28 z-10 flex flex-col justify-between">
+        <div>
+          <div className={`inline-flex self-start items-center px-3 py-0.5 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.15] to-white/[0.08] border ${colors.pillBorder}`}>
+            <span className="font-bold text-text-primary text-sm truncate">{entry.playerName}</span>
+          </div>
+          <div className="text-text-tertiary text-[11px] mt-1 ml-1">
+            {entry.seasonName ?? entry.year}
+          </div>
+        </div>
+        <div className={`text-xs font-bold ${colors.labelColor}`}>
+          {entry.year}
+        </div>
+      </div>
+
+      {/* Player photo — right side */}
+      <div className="absolute right-0 top-0 bottom-0 w-28 overflow-hidden">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt=""
+            loading="lazy"
+            className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl opacity-30">🐵</span>
+          </div>
+        )}
+      </div>
+    </Link>
   )
 }

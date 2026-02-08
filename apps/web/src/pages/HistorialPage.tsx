@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useSeasons } from '../hooks/useSeasons'
-import { GlassCard, CardSkeleton, PageHeader } from '../components/ui'
+import { GlassCard, CardSkeleton, PageHeader, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 
 export function HistorialPage() {
@@ -9,6 +9,7 @@ export function HistorialPage() {
 
   if (loading) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Historial de Torneos" />
         <div className="grid gap-3">
@@ -17,15 +18,18 @@ export function HistorialPage() {
           ))}
         </div>
       </div>
+      </PageContainer>
     )
   }
 
   if (error) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Historial de Torneos" />
         <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
@@ -56,6 +60,7 @@ export function HistorialPage() {
   }
 
   return (
+    <PageContainer>
     <div className="space-y-8">
       <PageHeader title="Historial de Torneos" />
 
@@ -103,5 +108,6 @@ export function HistorialPage() {
         </GlassCard>
       )}
     </div>
+    </PageContainer>
   )
 }

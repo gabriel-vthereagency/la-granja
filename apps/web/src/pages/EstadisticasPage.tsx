@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStats, type StatsData, type StatsRow } from '../hooks/useStats'
 import { formatPoints } from '../utils/formatPoints'
-import { GlassCard, CardSkeleton, PageHeader } from '../components/ui'
+import { GlassCard, CardSkeleton, PageHeader, PageContainer } from '../components/ui'
 import { staggerFast, tableRow } from '../lib/motion'
 
 interface StatCategory {
@@ -86,6 +86,7 @@ export function EstadisticasPage() {
 
   if (loading) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Estadísticas" />
         <div className="grid grid-cols-3 md:grid-cols-7 gap-2 md:gap-3">
@@ -97,19 +98,23 @@ export function EstadisticasPage() {
           <CardSkeleton className="h-64" />
         </div>
       </div>
+      </PageContainer>
     )
   }
 
   if (error) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Estadísticas" />
         <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
   return (
+    <PageContainer>
     <div className="space-y-6">
       <PageHeader title="Estadísticas" />
 
@@ -137,6 +142,7 @@ export function EstadisticasPage() {
         </motion.div>
       </AnimatePresence>
     </div>
+    </PageContainer>
   )
 }
 

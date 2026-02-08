@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { usePlayerProfile } from '../hooks/usePlayerProfile'
 import { formatPoints } from '../utils/formatPoints'
-import { GlassCard, AnimatedCounter, PageHeader, CardSkeleton } from '../components/ui'
+import { GlassCard, AnimatedCounter, PageHeader, CardSkeleton, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 
 export function PlayerProfilePage() {
@@ -11,6 +11,7 @@ export function PlayerProfilePage() {
 
   if (loading) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Cargando..." backTo="/jugadores" backLabel="Volver a jugadores" />
         <div className="flex flex-col md:flex-row items-center gap-6">
@@ -26,23 +27,27 @@ export function PlayerProfilePage() {
           ))}
         </div>
       </div>
+      </PageContainer>
     )
   }
 
   if (error || !profile) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Error" backTo="/jugadores" backLabel="Volver a jugadores" />
         <GlassCard className="p-8 text-center text-accent-light">
           {error ?? 'Jugador no encontrado'}
         </GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
   const { player, aliases, favoriteHand, memberSince, stats } = profile
 
   return (
+    <PageContainer>
     <div className="space-y-6">
       <PageHeader title={player.name} backTo="/jugadores" backLabel="Volver a jugadores" />
 
@@ -196,6 +201,7 @@ export function PlayerProfilePage() {
         </motion.div>
       </motion.div>
     </div>
+    </PageContainer>
   )
 }
 

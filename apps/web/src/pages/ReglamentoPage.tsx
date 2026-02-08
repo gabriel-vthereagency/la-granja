@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GlassCard, PageHeader } from '../components/ui'
+import { GlassCard, PageHeader, PageContainer } from '../components/ui'
 import { fadeIn } from '../lib/motion'
 
 const tabs = [
@@ -28,6 +28,7 @@ export function ReglamentoPage() {
   }
 
   return (
+    <PageContainer>
     <div className="space-y-8 max-w-3xl mx-auto">
       <PageHeader title="Reglamento" />
 
@@ -252,6 +253,7 @@ export function ReglamentoPage() {
         </GlassCard>
       </motion.div>
     </div>
+    </PageContainer>
   )
 }
 

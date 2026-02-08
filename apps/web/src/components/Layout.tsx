@@ -3,9 +3,9 @@ import { AnimatedOutlet } from './AnimatedOutlet'
 
 export function Layout() {
   return (
-    <div className="min-h-screen bg-surface-1 text-text-primary">
+    <div className="flex min-h-screen flex-col bg-surface-1 text-text-primary">
       <NavBar />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <main className="flex-1">
         <AnimatedOutlet />
       </main>
       <footer className="border-t border-glass-border py-6 mt-auto">

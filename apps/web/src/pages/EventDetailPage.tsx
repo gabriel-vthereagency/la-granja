@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useEventResults } from '../hooks/useEventResults'
 import { formatPoints } from '../utils/formatPoints'
-import { GlassCard, AnimatedCounter, PageHeader, TableSkeleton } from '../components/ui'
+import { GlassCard, AnimatedCounter, PageHeader, TableSkeleton, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem, staggerFast, tableRow } from '../lib/motion'
 
 export function EventDetailPage() {
@@ -11,6 +11,7 @@ export function EventDetailPage() {
 
   if (loading) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader
           title="Cargando..."
@@ -27,24 +28,29 @@ export function EventDetailPage() {
         </div>
         <TableSkeleton rows={10} />
       </div>
+      </PageContainer>
     )
   }
 
   if (error) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Error" backTo={`/historial/${seasonId}`} backLabel="Volver a la temporada" />
         <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
   if (!event) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="No encontrada" backTo={`/historial/${seasonId}`} backLabel="Volver a la temporada" />
         <GlassCard className="p-8 text-center text-text-secondary">Fecha no encontrada</GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
@@ -61,6 +67,7 @@ export function EventDetailPage() {
   const podium = first && second && third ? { first, second, third } : null
 
   return (
+    <PageContainer>
     <div className="space-y-6">
       <PageHeader
         title={`Fecha #${event.number}`}
@@ -221,6 +228,7 @@ export function EventDetailPage() {
         </div>
       </motion.section>
     </div>
+    </PageContainer>
   )
 }
 

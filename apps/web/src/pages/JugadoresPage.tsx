@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { usePlayers, type PlayerCard } from '../hooks/usePlayers'
-import { GlassCard, PageHeader } from '../components/ui'
+import { GlassCard, PageHeader, PageContainer } from '../components/ui'
 import { staggerContainer, staggerItem } from '../lib/motion'
 
 function getBadgeSrc(titles: number): string {
@@ -24,6 +24,7 @@ export function JugadoresPage() {
 
   if (loading) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Jugadores" />
         {/* Desktop skeleton */}
@@ -39,19 +40,23 @@ export function JugadoresPage() {
           ))}
         </div>
       </div>
+      </PageContainer>
     )
   }
 
   if (error) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Jugadores" />
         <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
   return (
+    <PageContainer>
     <div className="space-y-6">
       <PageHeader title="Jugadores" />
 
@@ -108,6 +113,7 @@ export function JugadoresPage() {
         </GlassCard>
       )}
     </div>
+    </PageContainer>
   )
 }
 

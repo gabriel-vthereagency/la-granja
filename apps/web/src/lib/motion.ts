@@ -122,6 +122,51 @@ export const tableRow: Variants = {
   },
 }
 
+// ── Hero Animations ─────────────────────────────────────────────────
+
+export const heroTitle: Variants = {
+  initial: { opacity: 0, y: 40 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+  },
+}
+
+export const heroFadeUp: Variants = {
+  initial: { opacity: 0, y: 24 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+  },
+}
+
+export const heroScale: Variants = {
+  initial: { opacity: 0, scale: 0.85, y: 30 },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 200, damping: 20 },
+  },
+}
+
+export const floatSlow: Variants = {
+  animate: {
+    y: [0, -12, 0],
+    rotate: [0, 3, -3, 0],
+    transition: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
+  },
+}
+
+export const bounceDown: Variants = {
+  animate: {
+    y: [0, 6, 0],
+    transition: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' },
+  },
+}
+
 // ── Counter Config ──────────────────────────────────────────────────
 
 export const counterConfig = {

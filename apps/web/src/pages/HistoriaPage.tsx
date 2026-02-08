@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
-import { GlassCard, PageHeader } from '../components/ui'
+import { GlassCard, PageHeader, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 
 export function HistoriaPage() {
   return (
+    <PageContainer>
     <div className="space-y-8 max-w-3xl mx-auto">
       <PageHeader title="Historia de La Granja" />
 
@@ -54,5 +55,6 @@ export function HistoriaPage() {
         </p>
       </motion.section>
     </div>
+    </PageContainer>
   )
 }

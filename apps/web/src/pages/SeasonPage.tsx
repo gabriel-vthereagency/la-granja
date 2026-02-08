@@ -4,7 +4,7 @@ import { useSeason } from '../hooks/useSeason'
 import { useSeasonEvents } from '../hooks/useSeasonEvents'
 import { useStandings } from '../hooks/useStandings'
 import { StandingsTable } from '../components/StandingsTable'
-import { GlassCard, PageHeader, TableSkeleton } from '../components/ui'
+import { GlassCard, PageHeader, TableSkeleton, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 
 export function SeasonPage() {
@@ -18,28 +18,34 @@ export function SeasonPage() {
 
   if (loading) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Cargando..." backTo="/historial" backLabel="Volver al historial" />
         <TableSkeleton rows={10} />
       </div>
+      </PageContainer>
     )
   }
 
   if (error) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="Error" backTo="/historial" backLabel="Volver al historial" />
         <GlassCard className="p-8 text-center text-accent-light">Error: {error}</GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
   if (!season) {
     return (
+      <PageContainer>
       <div className="space-y-6">
         <PageHeader title="No encontrada" backTo="/historial" backLabel="Volver al historial" />
         <GlassCard className="p-8 text-center text-text-secondary">Temporada no encontrada</GlassCard>
       </div>
+      </PageContainer>
     )
   }
 
@@ -53,6 +59,7 @@ export function SeasonPage() {
   const isSummer = season.type === 'summer'
 
   return (
+    <PageContainer>
     <div className="space-y-6">
       <PageHeader
         title={season.name}
@@ -138,6 +145,7 @@ export function SeasonPage() {
         </motion.section>
       )}
     </div>
+    </PageContainer>
   )
 }
 
