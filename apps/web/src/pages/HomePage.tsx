@@ -30,7 +30,7 @@ export function HomePage() {
   return (
     <>
       {/* ═══ HERO — Full-screen, full-width ═══ */}
-      <section className="relative h-[100svh] flex flex-col overflow-hidden">
+      <section className="relative min-h-[100svh] pt-24 md:pt-28 flex flex-col overflow-hidden">
         {/* Background layers */}
         <div className="absolute inset-0 bg-surface-1" />
         <div
