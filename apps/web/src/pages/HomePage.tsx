@@ -478,7 +478,7 @@ function FloatingDecorations() {
     <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
       {FLOAT_POSITIONS.map((pos, i) => {
         const shapeIndex = pos.shapeIndex ?? i % SUIT_SHAPES.length
-        const icon = SUIT_SHAPES[shapeIndex]
+        const icon = SUIT_SHAPES[shapeIndex] ?? SUIT_SHAPES[0]
         return (
         <motion.svg
           key={i}
