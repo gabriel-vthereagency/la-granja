@@ -14,11 +14,12 @@ export interface StatsData {
   topLastPlaces: StatsRow[]
   topBubbles: StatsRow[]
   topEffectiveness: StatsRow[]
+  topWinRate: StatsRow[]
   topPresences: StatsRow[]
 }
 
 const TOP_LIMIT = 10
-const MIN_EFFECTIVENESS_EVENTS = 30
+const MIN_EFFECTIVENESS_EVENTS = 60
 
 async function fetchStats(): Promise<StatsData> {
   // Try optimized view first
@@ -75,12 +76,30 @@ async function fetchStats(): Promise<StatsData> {
         value: row.value,
       }))
 
+    const topWinRate = players
+      .filter((p) => Number(p.total_events) >= MIN_EFFECTIVENESS_EVENTS)
+      .map((p) => ({
+        player_name: p.player_name,
+        player_id: p.player_id,
+        value: (Number(p.golds) / Number(p.total_events)) * 100,
+      }))
+      .filter((row) => row.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, TOP_LIMIT)
+      .map((row, index) => ({
+        rank: index + 1,
+        player: row.player_name,
+        playerId: row.player_id,
+        value: row.value,
+      }))
+
     return {
       topPodiums,
       topWins,
       topLastPlaces,
       topBubbles,
       topEffectiveness,
+      topWinRate,
       topPresences,
     }
   }
@@ -124,6 +143,7 @@ async function fetchStats(): Promise<StatsData> {
       topLastPlaces: [],
       topBubbles: [],
       topEffectiveness: [],
+      topWinRate: [],
       topPresences: [],
     }
   }
@@ -212,6 +232,17 @@ async function fetchStats(): Promise<StatsData> {
       player: row.name,
       value: row.value,
     }))
+  const topWinRate = Array.from(perPlayer.values())
+    .filter((p) => p.events >= MIN_EFFECTIVENESS_EVENTS)
+    .map((p) => ({ name: p.name, value: (p.wins / p.events) * 100 }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, TOP_LIMIT)
+    .map((row, index) => ({
+      rank: index + 1,
+      player: row.name,
+      value: row.value,
+    }))
 
   return {
     topPodiums,
@@ -219,6 +250,7 @@ async function fetchStats(): Promise<StatsData> {
     topLastPlaces,
     topBubbles,
     topEffectiveness,
+    topWinRate,
     topPresences,
   }
 }
@@ -235,6 +267,7 @@ export function useStats() {
       topLastPlaces: [],
       topBubbles: [],
       topEffectiveness: [],
+      topWinRate: [],
       topPresences: [],
     },
     loading: isLoading,
