@@ -145,61 +145,63 @@ export function HomePage() {
 
         {/* Hero bottom cards — in flow, pinned to bottom */}
         <div className="relative z-10 shrink-0">
-          <div className="mx-auto max-w-7xl px-6 pb-6 md:pb-8">
-            <div className="mx-auto max-w-7xl px-6">
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-              >
-                {/* Hall of Fame card */}
-                <motion.div variants={staggerItem}>
-                  <Link
-                    to="/hall-of-fame"
-                    className="group relative block overflow-hidden rounded-2xl border border-gold/20 bg-gradient-to-br from-gold/[0.08] to-transparent backdrop-blur-sm transition-all duration-300 hover:border-gold/40 hover:shadow-[0_0_30px_rgba(234,179,8,0.12)]"
-                  >
-                    <div className="relative z-10 p-4 md:p-6">
-                      <h3 className="text-base md:text-xl font-bold text-gold mb-0.5 md:mb-1" style={{ fontFamily: 'var(--font-nav)' }}>
-                        Hall of Fame
-                      </h3>
-                      <p className="text-text-secondary text-xs md:text-sm">Los campeones de La Granja</p>
-                    </div>
-                    {/* Clipped tilted badge */}
-                    <img
-                      src="/hof.png"
-                      alt=""
-                      className="absolute -right-2 -bottom-2 w-20 h-20 md:-right-4 md:-bottom-4 md:w-40 md:h-40 object-contain opacity-20 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none select-none"
-                      style={{ transform: 'rotate(15deg)' }}
-                      aria-hidden="true"
-                    />
-                  </Link>
-                </motion.div>
-
-                {/* Jugadores card */}
-                <motion.div variants={staggerItem}>
-                  <Link
-                    to="/jugadores"
-                    className="group relative block overflow-hidden rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/[0.06] to-transparent backdrop-blur-sm transition-all duration-300 hover:border-accent/40 hover:shadow-[0_0_30px_rgba(239,68,68,0.12)]"
-                  >
-                    <div className="relative z-10 p-4 md:p-6">
-                      <h3 className="text-base md:text-xl font-bold text-accent-light mb-0.5 md:mb-1" style={{ fontFamily: 'var(--font-nav)' }}>
-                        Jugadores
-                      </h3>
-                      <p className="text-text-secondary text-xs md:text-sm">Directorio y perfiles</p>
-                    </div>
-                    {/* Clipped tilted monkey */}
-                    <img
-                      src="/mono.png"
-                      alt=""
-                      className="absolute -right-2 -bottom-2 w-20 h-20 md:-right-4 md:-bottom-4 md:w-40 md:h-40 object-contain opacity-20 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none select-none"
-                      style={{ transform: 'rotate(-12deg)' }}
-                      aria-hidden="true"
-                    />
-                  </Link>
-                </motion.div>
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-6 md:pb-8">
+            <motion.div
+              className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {/* Hall of Fame card */}
+              <motion.div variants={staggerItem}>
+                <Link
+                  to="/hall-of-fame"
+                  className="group relative block overflow-hidden rounded-2xl border border-gold/20 bg-gradient-to-br from-gold/[0.08] to-transparent backdrop-blur-sm transition-all duration-300 hover:border-gold/40 hover:shadow-[0_0_30px_rgba(234,179,8,0.12)]"
+                >
+                  <div className="relative z-10 p-3 sm:p-4 md:p-6">
+                    <h3 className="text-base md:text-xl font-bold text-gold mb-0.5 md:mb-1" style={{ fontFamily: 'var(--font-nav)' }}>
+                      Hall of Fame
+                    </h3>
+                    <p className="hidden md:block text-text-secondary text-xs md:text-sm">
+                      Los campeones de La Granja
+                    </p>
+                  </div>
+                  {/* Clipped tilted badge */}
+                  <img
+                    src="/hof.png"
+                    alt=""
+                    className="absolute -right-2 -bottom-2 w-20 h-20 md:-right-4 md:-bottom-4 md:w-40 md:h-40 object-contain opacity-20 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none select-none"
+                    style={{ transform: 'rotate(15deg)' }}
+                    aria-hidden="true"
+                  />
+                </Link>
               </motion.div>
-            </div>
+
+              {/* Jugadores card */}
+              <motion.div variants={staggerItem}>
+                <Link
+                  to="/jugadores"
+                  className="group relative block overflow-hidden rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/[0.06] to-transparent backdrop-blur-sm transition-all duration-300 hover:border-accent/40 hover:shadow-[0_0_30px_rgba(239,68,68,0.12)]"
+                >
+                  <div className="relative z-10 p-3 sm:p-4 md:p-6">
+                    <h3 className="text-base md:text-xl font-bold text-accent-light mb-0.5 md:mb-1" style={{ fontFamily: 'var(--font-nav)' }}>
+                      Jugadores
+                    </h3>
+                    <p className="hidden md:block text-text-secondary text-xs md:text-sm">
+                      Directorio y perfiles
+                    </p>
+                  </div>
+                  {/* Clipped tilted monkey */}
+                  <img
+                    src="/mono.png"
+                    alt=""
+                    className="absolute -right-2 -bottom-2 w-20 h-20 md:-right-4 md:-bottom-4 md:w-40 md:h-40 object-contain opacity-20 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none select-none"
+                    style={{ transform: 'rotate(-12deg)' }}
+                    aria-hidden="true"
+                  />
+                </Link>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </section>
