@@ -189,11 +189,12 @@ function StandingCard({ standing: s }: { standing: PlayerStanding }) {
             {s.position}°
           </span>
           <div className="w-9 h-9 bg-surface-3 rounded-full flex items-center justify-center text-lg shrink-0 overflow-hidden">
-            {s.player.avatarUrl ? (
-              <img src={s.player.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
-            ) : (
-              '🐵'
-            )}
+            <img
+              src={`/Players/${s.player.id}.png`}
+              alt=""
+              className="w-full h-full object-cover object-top scale-150"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement!.textContent = '🐵' }}
+            />
           </div>
           <span className="font-medium truncate">{s.player.name}</span>
           <div className="ml-auto shrink-0">

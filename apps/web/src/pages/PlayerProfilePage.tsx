@@ -54,16 +54,13 @@ export function PlayerProfilePage() {
       {/* Header del perfil */}
       <motion.div variants={fadeIn} initial="initial" animate="animate">
         <GlassCard className="p-6 flex flex-col md:flex-row items-center gap-6">
-          <div className="w-24 h-24 bg-surface-3 rounded-full flex items-center justify-center text-5xl shrink-0 ring-2 ring-glass-border">
-            {player.avatarUrl ? (
-              <img
-                src={player.avatarUrl}
-                alt={player.name}
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              '🐵'
-            )}
+          <div className="w-24 h-24 bg-surface-3 rounded-full flex items-center justify-center text-5xl shrink-0 ring-2 ring-glass-border overflow-hidden">
+            <img
+              src={`/Players/${player.id}.png`}
+              alt={player.name}
+              className="w-full h-full object-cover object-top scale-[1.3]"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement!.textContent = '🐵' }}
+            />
           </div>
           <div className="text-center md:text-left">
             <h1 className="text-2xl font-bold tracking-tight">{player.name}</h1>
