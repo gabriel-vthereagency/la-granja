@@ -8,5 +8,13 @@ data/BASE DE DATOS RAW.xlsx
 data/raw/
 data/normalized/
 
+# Scripts y datos auxiliares
+data/update_mesa_final.sql
+scripts/
+
+# IDE / editor
+*.code-workspace
+.claude/settings.local.json
+
 # Windows reserved file accidentally created
 nul
