@@ -192,7 +192,8 @@ function StandingCard({ standing: s }: { standing: PlayerStanding }) {
             <img
               src={`/Players/${s.player.id}.png`}
               alt=""
-              className="w-full h-full object-cover object-top scale-150"
+              className="w-full h-full object-cover object-top"
+              style={{ transform: 'scale(2.2)', transformOrigin: 'top center' }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement!.textContent = '🐵' }}
             />
           </div>

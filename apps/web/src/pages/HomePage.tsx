@@ -362,7 +362,8 @@ function PodiumPhoto({
             <img
               src={photoSrc}
               alt={entry.player.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-top"
+              style={{ transform: 'scale(1.6)', transformOrigin: 'top center' }}
               onError={() => setPhotoError(true)}
             />
           ) : (

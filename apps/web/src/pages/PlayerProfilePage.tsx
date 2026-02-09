@@ -58,7 +58,8 @@ export function PlayerProfilePage() {
             <img
               src={`/Players/${player.id}.png`}
               alt={player.name}
-              className="w-full h-full object-cover object-top scale-[1.3]"
+              className="w-full h-full object-cover object-top"
+              style={{ transform: 'scale(1.8)', transformOrigin: 'top center' }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; e.currentTarget.parentElement!.textContent = '🐵' }}
             />
           </div>
