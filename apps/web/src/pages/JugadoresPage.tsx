@@ -12,14 +12,15 @@ function getBadgeSrc(titles: number): string {
   return '/mono.png'
 }
 
-const MONO_FALLBACKS = ['/Players/mono1.png', '/Players/mono2.png', '/Players/mono-3.png']
+const MONO_FALLBACKS: [string, string, string] = ['/Players/mono1.png', '/Players/mono2.png', '/Players/mono-3.png']
 
 function getFallbackSrc(playerId: string): string {
   let hash = 0
   for (let i = 0; i < playerId.length; i += 1) {
     hash = (hash * 31 + playerId.charCodeAt(i)) >>> 0
   }
-  return MONO_FALLBACKS[hash % MONO_FALLBACKS.length]
+  const pick = MONO_FALLBACKS[hash % MONO_FALLBACKS.length] ?? MONO_FALLBACKS[0]
+  return pick
 }
 
 export function JugadoresPage() {
