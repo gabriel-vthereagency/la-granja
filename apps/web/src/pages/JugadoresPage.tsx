@@ -12,6 +12,16 @@ function getBadgeSrc(titles: number): string {
   return '/mono.png'
 }
 
+const MONO_FALLBACKS = ['/Players/mono1.png', '/Players/mono2.png', '/Players/mono-3.png']
+
+function getFallbackSrc(playerId: string): string {
+  let hash = 0
+  for (let i = 0; i < playerId.length; i += 1) {
+    hash = (hash * 31 + playerId.charCodeAt(i)) >>> 0
+  }
+  return MONO_FALLBACKS[hash % MONO_FALLBACKS.length]
+}
+
 export function JugadoresPage() {
   const { players, loading, error } = usePlayers()
   const [search, setSearch] = useState('')
@@ -118,8 +128,9 @@ export function JugadoresPage() {
 }
 
 function DesktopCard({ player }: { player: PlayerCard }) {
-  const [photoError, setPhotoError] = useState(false)
+  const [photoState, setPhotoState] = useState<'primary' | 'fallback' | 'emoji'>('primary')
   const photoSrc = `/Players/${player.id}.png`
+  const fallbackSrc = getFallbackSrc(player.id)
   const badgeSrc = getBadgeSrc(player.finalSevenTitles)
 
   return (
@@ -147,13 +158,21 @@ function DesktopCard({ player }: { player: PlayerCard }) {
 
       {/* Player photo */}
       <div className="absolute inset-0 flex items-end justify-center pb-[90px]">
-        {!photoError ? (
+        {photoState === 'primary' ? (
           <img
             src={photoSrc}
             alt={player.name}
             loading="lazy"
             className="h-[90%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300"
-            onError={() => setPhotoError(true)}
+            onError={() => setPhotoState('fallback')}
+          />
+        ) : photoState === 'fallback' ? (
+          <img
+            src={fallbackSrc}
+            alt=""
+            loading="lazy"
+            className="h-[90%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300 opacity-90"
+            onError={() => setPhotoState('emoji')}
           />
         ) : (
           <span className="text-8xl opacity-30 mb-8">🐵</span>
@@ -182,8 +201,9 @@ function DesktopCard({ player }: { player: PlayerCard }) {
 }
 
 function MobileCard({ player }: { player: PlayerCard }) {
-  const [photoError, setPhotoError] = useState(false)
+  const [photoState, setPhotoState] = useState<'primary' | 'fallback' | 'emoji'>('primary')
   const photoSrc = `/Players/${player.id}.png`
+  const fallbackSrc = getFallbackSrc(player.id)
   const badgeSrc = getBadgeSrc(player.finalSevenTitles)
 
   return (
@@ -223,13 +243,21 @@ function MobileCard({ player }: { player: PlayerCard }) {
 
       {/* Player photo — right side, showing head down */}
       <div className="absolute right-0 top-0 bottom-0 w-28 overflow-hidden">
-        {!photoError ? (
+        {photoState === 'primary' ? (
           <img
             src={photoSrc}
             alt=""
             loading="lazy"
             className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
-            onError={() => setPhotoError(true)}
+            onError={() => setPhotoState('fallback')}
+          />
+        ) : photoState === 'fallback' ? (
+          <img
+            src={fallbackSrc}
+            alt=""
+            loading="lazy"
+            className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)] opacity-90"
+            onError={() => setPhotoState('emoji')}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
