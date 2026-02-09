@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassCard, PageHeader } from '../components/ui'
 import { fadeIn } from '../lib/motion'
@@ -22,18 +22,36 @@ const TEXT_PART_2 = [
   'Bienvenido a La Granja.\nDonde el póker es la excusa.',
 ]
 
-/* ─── Photo Marquee Config ─── */
+/* ─── Photo Cloud Config ─── */
 
-const PHOTO_COUNT = 44
+const PHOTO_COUNT = 40
+const PHOTO_IDS = Array.from({ length: PHOTO_COUNT }, (_, i) => i + 1)
 
-const ALL_PHOTOS = Array.from({ length: PHOTO_COUNT }, (_, i) => i + 1)
+const GRID_COLS = 12
+const GRID_ROWS = 10
+const TILE_W = 200
+const TILE_H = 140
+const GAP_X = 22
+const GAP_Y = 18
+const ROW_OFFSET = 36
+const FIELD_PADDING = 160
 
-const MARQUEE_ROWS = [
-  { photos: ALL_PHOTOS.slice(0, 11), direction: 'left' as const, duration: '45s', tilt: '-2deg', opacity: 0.45 },
-  { photos: ALL_PHOTOS.slice(11, 22), direction: 'right' as const, duration: '55s', tilt: '1.5deg', opacity: 0.4 },
-  { photos: ALL_PHOTOS.slice(22, 33), direction: 'left' as const, duration: '35s', tilt: '-1deg', opacity: 0.5 },
-  { photos: ALL_PHOTOS.slice(33, 44), direction: 'right' as const, duration: '50s', tilt: '2deg', opacity: 0.35 },
-]
+const FIELD_WIDTH = GRID_COLS * (TILE_W + GAP_X) + (GRID_ROWS - 1) * ROW_OFFSET + FIELD_PADDING * 2
+const FIELD_HEIGHT = GRID_ROWS * (TILE_H + GAP_Y) + FIELD_PADDING * 2
+
+const PHOTO_TILES = Array.from({ length: GRID_COLS * GRID_ROWS }, (_, index) => {
+  const row = Math.floor(index / GRID_COLS)
+  const col = index % GRID_COLS
+  const jitterX = ((index * 37) % 16) - 8
+  const jitterY = ((index * 53) % 14) - 7
+  const rotate = ((index * 29) % 9) - 4
+  const scale = 0.92 + (((index * 17) % 12) / 100)
+  const x = col * (TILE_W + GAP_X) + row * ROW_OFFSET + jitterX + FIELD_PADDING
+  const y = row * (TILE_H + GAP_Y) + jitterY + FIELD_PADDING
+  const id = PHOTO_IDS[index % PHOTO_IDS.length] ?? 1
+
+  return { id, x, y, rotate, scale }
+})
 
 /* ─── Main Component ─── */
 
@@ -42,15 +60,15 @@ export function HistoriaPage() {
 
   return (
     <section className="relative min-h-screen overflow-hidden">
-      {/* ── Layer 0: Photo Marquee Background ── */}
-      <PhotoMarqueeBackground />
+      {/* ── Layer 0: Photo Cloud Background ── */}
+      <PhotoCloudBackground />
 
       {/* ── Layer 1: Dark Overlay ── */}
       <div
-        className="absolute inset-0 z-[1] backdrop-blur-[2px]"
+        className="absolute inset-0 z-[1] pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse at 50% 40%, rgba(9,9,11,0.92) 0%, rgba(9,9,11,0.85) 50%, rgba(9,9,11,0.80) 100%)',
+            'radial-gradient(ellipse at 50% 45%, rgba(9,9,11,0.92) 0%, rgba(9,9,11,0.78) 40%, rgba(9,9,11,0.45) 70%, rgba(9,9,11,0.12) 100%)',
         }}
       />
 
@@ -143,58 +161,96 @@ export function HistoriaPage() {
   )
 }
 
-/* ─── Photo Marquee Background ─── */
+/* ─── Photo Cloud Background ─── */
 
-function PhotoMarqueeBackground() {
+function PhotoCloudBackground() {
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const dragState = useRef<{
+    active: boolean
+    startX: number
+    startY: number
+    scrollLeft: number
+    scrollTop: number
+  } | null>(null)
+  const [dragging, setDragging] = useState(false)
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2
+    el.scrollTop = (el.scrollHeight - el.clientHeight) / 2
+  }, [])
+
+  const startDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const el = scrollRef.current
+    if (!el) return
+    dragState.current = {
+      active: true,
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: el.scrollLeft,
+      scrollTop: el.scrollTop,
+    }
+    setDragging(true)
+    el.setPointerCapture(event.pointerId)
+  }
+
+  const onDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const el = scrollRef.current
+    const state = dragState.current
+    if (!el || !state?.active) return
+    const dx = event.clientX - state.startX
+    const dy = event.clientY - state.startY
+    el.scrollLeft = state.scrollLeft - dx
+    el.scrollTop = state.scrollTop - dy
+  }
+
+  const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    const el = scrollRef.current
+    if (!el || !dragState.current?.active) return
+    dragState.current.active = false
+    setDragging(false)
+    el.releasePointerCapture(event.pointerId)
+  }
+
   return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 flex flex-col justify-center -mx-20">
-        {MARQUEE_ROWS.map((row, i) => (
-          <MarqueeRow key={i} {...row} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/* ─── Marquee Row ─── */
-
-function MarqueeRow({
-  photos,
-  direction,
-  duration,
-  tilt,
-  opacity,
-}: {
-  photos: number[]
-  direction: 'left' | 'right'
-  duration: string
-  tilt: string
-  opacity: number
-}) {
-  const doubled = [...photos, ...photos]
-
-  return (
-    <div className="py-1.5" style={{ transform: `rotate(${tilt})`, opacity }}>
+    <div className="absolute inset-0" aria-hidden="true">
       <div
-        className={`marquee-row ${direction === 'left' ? 'marquee-left' : 'marquee-right'}`}
-        style={
-          {
-            '--marquee-duration': duration,
-            width: `${doubled.length * 172}px`,
-          } as React.CSSProperties
-        }
+        ref={scrollRef}
+        className={`photo-cloud h-full w-full overflow-auto ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        onPointerDown={startDrag}
+        onPointerMove={onDrag}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onPointerLeave={endDrag}
       >
-        {doubled.map((num, idx) => (
-          <img
-            key={`${num}-${idx}`}
-            src={`/Historia/${num}.jpg`}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="w-40 h-28 object-cover rounded-xl shrink-0 select-none pointer-events-none"
-          />
-        ))}
+        <div className="relative" style={{ width: `${FIELD_WIDTH}px`, height: `${FIELD_HEIGHT}px` }}>
+          {PHOTO_TILES.map((tile, idx) => (
+            <div
+              key={`${tile.id}-${idx}`}
+              className="absolute"
+              style={{
+                left: `${tile.x}px`,
+                top: `${tile.y}px`,
+                transform: `rotate(${tile.rotate}deg) scale(${tile.scale})`,
+              }}
+            >
+              <img
+                src={`/Historia/${tile.id}.jpg`}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="block select-none pointer-events-none rounded-xl shadow-[0_14px_40px_rgba(0,0,0,0.35)]"
+                style={{
+                  width: `${TILE_W}px`,
+                  height: `${TILE_H}px`,
+                  objectFit: 'cover',
+                  filter: 'saturate(1.05) contrast(1.02)',
+                }}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

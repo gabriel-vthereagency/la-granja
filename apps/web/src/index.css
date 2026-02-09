@@ -143,3 +143,15 @@ body {
     animation-play-state: paused;
   }
 }
+
+/* ── Photo Cloud ─────────────────────────────────────────────────── */
+
+.photo-cloud {
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  touch-action: none;
+}
+
+.photo-cloud::-webkit-scrollbar {
+  display: none;
+}
