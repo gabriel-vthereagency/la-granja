@@ -136,6 +136,28 @@ export function useLiveTournament() {
           console.log('[Timer] State update received:', stateData)
           const pauseToggled = stateData.is_paused !== lastPausedRef.current
 
+          // Detectar RESET (currentLevel=0, championId=null, eventId=null)
+          const isReset =
+            stateData.current_level === 0 &&
+            stateData.champion_id === null &&
+            stateData.event_id === null &&
+            stateData.game_phase === 'normal'
+
+          if (isReset) {
+            console.log('[Timer] Reset detected, clearing state')
+            lastLevelRef.current = 0
+            lastPausedRef.current = true
+            setState({
+              ...DEFAULT_STATE,
+              id: stateData.id as string,
+              currentLevel: 0,
+              timeRemaining: stateData.time_remaining as number,
+              isPaused: true,
+              updatedAt: new Date(stateData.updated_at as string),
+            })
+            return
+          }
+
           // Detectar cambio de nivel → auto-play con tiempo nuevo
           if (stateData.current_level !== lastLevelRef.current) {
             lastLevelRef.current = stateData.current_level as number
@@ -154,29 +176,35 @@ export function useLiveTournament() {
           if (pauseToggled) {
             lastPausedRef.current = stateData.is_paused as boolean
 
-            // Si estamos pausando, sincronizar tiempo actual a DB
-            if (stateData.is_paused && stateIdRef.current) {
-              setState((prev) => {
-                // Guardar tiempo actual en DB
-                supabase
-                  .from('live_tournament_state')
-                  .update({ time_remaining: prev.timeRemaining })
-                  .eq('id', stateIdRef.current!)
-                return { ...prev, isPaused: true }
-              })
+            // TIMER NUNCA ESCRIBE - Solo recibe comandos de Control
+            // Cuando pausamos, sincronizar con el tiempo que viene de la DB
+            if (stateData.is_paused) {
+              setState((prev) => ({
+                ...prev,
+                isPaused: true,
+                timeRemaining: typeof stateData.time_remaining === 'number'
+                  ? (stateData.time_remaining as number)
+                  : prev.timeRemaining,
+              }))
             } else {
-              // Unpausing - mantener tiempo local
-              setState((prev) => ({ ...prev, isPaused: false }))
+              // Unpausing - usar tiempo de DB
+              setState((prev) => ({
+                ...prev,
+                isPaused: false,
+                timeRemaining: typeof stateData.time_remaining === 'number'
+                  ? (stateData.time_remaining as number)
+                  : prev.timeRemaining,
+              }))
             }
+            return // No actualizar otros campos si fue toggle de pausa
           }
 
           // Actualizar otros campos (buyInAmount, gamePhase, champion, tournament info)
           setState((prev) => ({
             ...prev,
-            timeRemaining:
-              !pauseToggled && typeof stateData.time_remaining === 'number' && stateData.is_paused === true
-                ? (stateData.time_remaining as number)
-                : prev.timeRemaining,
+            timeRemaining: typeof stateData.time_remaining === 'number' && stateData.is_paused === true
+              ? (stateData.time_remaining as number)
+              : prev.timeRemaining,
             buyInAmount: typeof stateData.buy_in_amount === 'number' ? stateData.buy_in_amount : prev.buyInAmount,
             gamePhase: stateData.game_phase ? (stateData.game_phase as 'normal' | 'final_table' | 'heads_up' | 'champion') : prev.gamePhase,
             championId: stateData.champion_id !== undefined ? (stateData.champion_id as string | null) : prev.championId,

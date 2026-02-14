@@ -81,6 +81,36 @@ export function useTournamentControl() {
           const stateData = payload.new as Record<string, unknown>
           console.log('[Control] State update received:', stateData)
 
+          // Detectar RESET (currentLevel=0, championId=null, eventId=null)
+          const isReset =
+            stateData.current_level === 0 &&
+            stateData.champion_id === null &&
+            stateData.event_id === null &&
+            stateData.game_phase === 'normal'
+
+          if (isReset) {
+            console.log('[Control] Reset detected, clearing state')
+            const firstLevelDuration = BLIND_STRUCTURE[0]?.durationSec ?? 720
+            setState((prev) => ({
+              ...prev,
+              players: [],
+              totalRebuys: 0,
+              currentLevel: 0,
+              timeRemaining: stateData.time_remaining as number ?? firstLevelDuration,
+              isPaused: true,
+              gamePhase: 'normal',
+              championId: null,
+              championName: null,
+              eventId: null,
+              tournamentName: null,
+              seasonName: null,
+              eventNumber: null,
+              totalEvents: null,
+              updatedAt: new Date(stateData.updated_at as string),
+            }))
+            return
+          }
+
           setState((prev) => ({
             ...prev,
             currentLevel: stateData.current_level as number,
