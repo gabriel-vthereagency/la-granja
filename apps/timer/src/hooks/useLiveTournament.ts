@@ -177,14 +177,14 @@ export function useLiveTournament() {
               !pauseToggled && typeof stateData.time_remaining === 'number' && stateData.is_paused === true
                 ? (stateData.time_remaining as number)
                 : prev.timeRemaining,
-            buyInAmount: (stateData.buy_in_amount as number) ?? prev.buyInAmount,
-            gamePhase: (stateData.game_phase as 'normal' | 'final_table' | 'heads_up' | 'champion') ?? prev.gamePhase,
-            championId: (stateData.champion_id as string | null) ?? prev.championId,
-            championName: (stateData.champion_name as string | null) ?? prev.championName,
-            tournamentName: (stateData.tournament_name as string | null) ?? prev.tournamentName,
-            seasonName: (stateData.season_name as string | null) ?? prev.seasonName,
-            eventNumber: (stateData.event_number as number | null) ?? prev.eventNumber,
-            totalEvents: (stateData.total_events as number | null) ?? prev.totalEvents,
+            buyInAmount: typeof stateData.buy_in_amount === 'number' ? stateData.buy_in_amount : prev.buyInAmount,
+            gamePhase: stateData.game_phase ? (stateData.game_phase as 'normal' | 'final_table' | 'heads_up' | 'champion') : prev.gamePhase,
+            championId: stateData.champion_id !== undefined ? (stateData.champion_id as string | null) : prev.championId,
+            championName: stateData.champion_name !== undefined ? (stateData.champion_name as string | null) : prev.championName,
+            tournamentName: stateData.tournament_name !== undefined ? (stateData.tournament_name as string | null) : prev.tournamentName,
+            seasonName: stateData.season_name !== undefined ? (stateData.season_name as string | null) : prev.seasonName,
+            eventNumber: stateData.event_number !== undefined ? (stateData.event_number as number | null) : prev.eventNumber,
+            totalEvents: stateData.total_events !== undefined ? (stateData.total_events as number | null) : prev.totalEvents,
           }))
         }
       )

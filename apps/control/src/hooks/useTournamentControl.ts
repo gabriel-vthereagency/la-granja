@@ -86,15 +86,15 @@ export function useTournamentControl() {
             currentLevel: stateData.current_level as number,
             timeRemaining: stateData.time_remaining as number,
             isPaused: stateData.is_paused as boolean,
-            eventId: stateData.event_id as string | null,
-            gamePhase: (stateData.game_phase as GamePhase) ?? prev.gamePhase,
-            championId: stateData.champion_id as string | null,
-            championName: stateData.champion_name as string | null,
-            buyInAmount: (stateData.buy_in_amount as number) ?? prev.buyInAmount,
-            tournamentName: (stateData.tournament_name as string | null) ?? prev.tournamentName,
-            seasonName: (stateData.season_name as string | null) ?? prev.seasonName,
-            eventNumber: (stateData.event_number as number | null) ?? prev.eventNumber,
-            totalEvents: (stateData.total_events as number | null) ?? prev.totalEvents,
+            eventId: stateData.event_id !== undefined ? (stateData.event_id as string | null) : prev.eventId,
+            gamePhase: stateData.game_phase ? (stateData.game_phase as GamePhase) : prev.gamePhase,
+            championId: stateData.champion_id !== undefined ? (stateData.champion_id as string | null) : prev.championId,
+            championName: stateData.champion_name !== undefined ? (stateData.champion_name as string | null) : prev.championName,
+            buyInAmount: typeof stateData.buy_in_amount === 'number' ? stateData.buy_in_amount : prev.buyInAmount,
+            tournamentName: stateData.tournament_name !== undefined ? (stateData.tournament_name as string | null) : prev.tournamentName,
+            seasonName: stateData.season_name !== undefined ? (stateData.season_name as string | null) : prev.seasonName,
+            eventNumber: stateData.event_number !== undefined ? (stateData.event_number as number | null) : prev.eventNumber,
+            totalEvents: stateData.total_events !== undefined ? (stateData.total_events as number | null) : prev.totalEvents,
             updatedAt: new Date(stateData.updated_at as string),
           }))
         }
@@ -604,18 +604,28 @@ export function useTournamentControl() {
         .delete()
         .eq('tournament_state_id', stateIdRef.current)
 
-      // Resetear estado
+      // Resetear estado en DB (UN SOLO UPDATE con todos los campos)
       const firstLevel = BLIND_STRUCTURE[0]
-      await updateState({
-        currentLevel: 0,
-        timeRemaining: firstLevel?.durationSec ?? 720,
-        isPaused: true,
-        gamePhase: 'normal',
-        championId: null,
-        championName: null,
-      })
+      const firstLevelDuration = firstLevel?.durationSec ?? 720
 
-      const firstLevelDuration = BLIND_STRUCTURE[0]?.durationSec ?? 720
+      await supabase
+        .from('live_tournament_state')
+        .update({
+          current_level: 0,
+          time_remaining: firstLevelDuration,
+          is_paused: true,
+          game_phase: 'normal',
+          champion_id: null,
+          champion_name: null,
+          event_id: null,
+          tournament_name: null,
+          season_name: null,
+          event_number: null,
+          total_events: null,
+        })
+        .eq('id', stateIdRef.current)
+
+      // Actualizar estado local
       setState((prev) => ({
         ...prev,
         players: [],
@@ -627,17 +637,15 @@ export function useTournamentControl() {
         championId: null,
         championName: null,
         eventId: null,
+        tournamentName: null,
+        seasonName: null,
+        eventNumber: null,
+        totalEvents: null,
       }))
-
-      // Limpiar event_id en DB
-      await supabase
-        .from('live_tournament_state')
-        .update({ event_id: null })
-        .eq('id', stateIdRef.current)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error resetting tournament')
     }
-  }, [updateState])
+  }, [])
 
   // Asociar evento al torneo
   const setEventId = useCallback(async (eventId: string) => {
