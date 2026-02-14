@@ -1,4 +1,5 @@
 import { formatCurrency, type PrizePoolBreakdown } from '@lagranja/core'
+import logoImg from '/logo.png'
 
 interface PrizesRowProps {
   prizeBreakdown: PrizePoolBreakdown
@@ -25,7 +26,7 @@ export function PrizesRow({ prizeBreakdown }: PrizesRowProps) {
 
       {/* Logo */}
       <div className="logo-container">
-        <img src="/logo.png" alt="La Granja Poker Club" className="club-logo" />
+        <img src={logoImg} alt="La Granja Poker Club" className="club-logo" />
       </div>
 
       {/* 2° */}

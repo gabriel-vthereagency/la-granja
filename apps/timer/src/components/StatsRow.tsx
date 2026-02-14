@@ -1,4 +1,5 @@
 import type { TournamentStats } from '@lagranja/core'
+import logoImg from '/logo.png'
 
 interface StatsRowProps {
   stats: TournamentStats
@@ -20,7 +21,7 @@ export function StatsRow({ stats }: StatsRowProps) {
       </div>
 
       <div className="logo-container">
-        <img src="/logo.png" alt="La Granja Poker Club" className="club-logo" />
+        <img src={logoImg} alt="La Granja Poker Club" className="club-logo" />
       </div>
 
       <div className="stat-card">
