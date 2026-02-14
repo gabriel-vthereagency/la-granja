@@ -70,11 +70,11 @@ html, body {
   padding: 20px 32px 16px;
   gap: 16px;
   /* Auto-scale to fit viewport while maintaining aspect ratio */
-  /* Added 0.75 safety margin for projectors/TVs with overscan */
+  /* Reduced to 0.65 for projectors with overscan */
   --scale-x: calc(100vw / 1920);
   --scale-y: calc(100vh / 1080);
   --scale-base: min(var(--scale-x), var(--scale-y));
-  --scale: calc(var(--scale-base) * 0.75);
+  --scale: calc(var(--scale-base) * 0.65);
   transform: scale(var(--scale));
 }
 
