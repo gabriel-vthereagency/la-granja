@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useLiveTournament } from './hooks/useLiveTournament'
+import { useSoundEffects } from './hooks/useSoundEffects'
 import { calculateTournamentStats, calculatePrizePool } from '@lagranja/core'
 import type { GamePhase } from '@lagranja/types'
 import { Header } from './components/Header'
@@ -55,6 +56,52 @@ export default function App() {
   const { state, loading, error } = useLiveTournament()
   const [showStats, setShowStats] = useState(true)
   const { stageStyle, stageRef } = useStageScale()
+  const { playElimination, playRebuy, playLevelUp } = useSoundEffects()
+
+  // Track previous values to detect changes
+  const prevEliminatedRef = useRef<number>(-1)
+  const prevRebuysRef = useRef<number>(-1)
+  const prevLevelRef = useRef<number>(-1)
+
+  const triggerFlash = useCallback((panelClass: string) => {
+    const el = document.querySelector(`.side-panel.${panelClass}`)
+    if (!el) return
+    el.classList.remove('flash-effect')
+    // Force reflow to restart animation
+    void (el as HTMLElement).offsetWidth
+    el.classList.add('flash-effect')
+  }, [])
+
+  // Detect eliminations, rebuys, and level changes
+  const eliminatedCount = state.players.filter((p) => p.status === 'eliminated').length
+  const rebuyCount = state.totalRebuys
+
+  useEffect(() => {
+    // Skip first render (initial load)
+    if (prevEliminatedRef.current === -1) {
+      prevEliminatedRef.current = eliminatedCount
+      prevRebuysRef.current = rebuyCount
+      prevLevelRef.current = state.currentLevel
+      return
+    }
+
+    if (eliminatedCount > prevEliminatedRef.current) {
+      playElimination()
+      triggerFlash('eliminados')
+    }
+    prevEliminatedRef.current = eliminatedCount
+
+    if (rebuyCount > prevRebuysRef.current) {
+      playRebuy()
+      triggerFlash('recompras')
+    }
+    prevRebuysRef.current = rebuyCount
+
+    if (state.currentLevel !== prevLevelRef.current) {
+      playLevelUp()
+    }
+    prevLevelRef.current = state.currentLevel
+  }, [eliminatedCount, rebuyCount, state.currentLevel, playElimination, playRebuy, playLevelUp, triggerFlash])
 
   // Rotate between stats and prizes every 8 seconds
   useEffect(() => {
