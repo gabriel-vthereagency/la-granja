@@ -496,7 +496,7 @@ html, body {
 /* ==================== CHAMPION SCREEN ==================== */
 
 .champion-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: radial-gradient(circle at top, #0b1120 0%, #020617 55%);
   display: flex;
@@ -512,8 +512,8 @@ html, body {
 }
 
 .champion-screen {
-  width: 92vw;
-  height: 88vh;
+  width: 1760px;
+  height: 950px;
   background: linear-gradient(180deg, rgba(30, 41, 59, 0.85), rgba(2, 6, 23, 0.95));
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 28px;

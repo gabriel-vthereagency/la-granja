@@ -153,18 +153,18 @@ export default function App() {
             <PrizesRow prizeBreakdown={prizeBreakdown} />
           </div>
         </div>
+
+        {/* Champion Modal - inside stage so it scales with it */}
+        {showChampion && championNameDisplay && (
+          <ChampionModal
+            championName={championNameDisplay}
+            players={state.players}
+          />
+        )}
       </div>
 
       {/* Debug overlay - remove after tuning */}
       <div className="debug-overlay">{debugInfo}</div>
-
-      {/* Champion Modal */}
-      {showChampion && championNameDisplay && (
-        <ChampionModal
-          championName={championNameDisplay}
-          players={state.players}
-        />
-      )}
     </div>
   )
 }
