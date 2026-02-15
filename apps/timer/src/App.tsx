@@ -103,7 +103,7 @@ export default function App() {
       <div
         className="timer-stage"
         ref={stageRef}
-        style={{ transform: `scale(${scale})` }}
+        style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
       >
         {/* Header */}
         <Header
