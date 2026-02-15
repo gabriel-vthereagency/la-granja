@@ -11,6 +11,7 @@ import { PrizesRow } from './components/PrizesRow'
 import { ChampionModal } from './components/ChampionModal'
 
 const ROTATION_INTERVAL = 8000 // 8 seconds between stats/prizes
+const ELIM_MODAL_DURATION = 6000 // 6 seconds
 const STAGE_W = 1920
 const STAGE_H = 1080
 
@@ -57,11 +58,14 @@ export default function App() {
   const [showStats, setShowStats] = useState(true)
   const { stageStyle, stageRef } = useStageScale()
   const { playElimination, playRebuy, playLevelUp } = useSoundEffects()
+  const [elimModal, setElimModal] = useState<string | null>(null)
+  const elimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Track previous values to detect changes
   const prevEliminatedRef = useRef<number>(-1)
   const prevRebuysRef = useRef<number>(-1)
   const prevLevelRef = useRef<number>(-1)
+  const prevEliminatedNamesRef = useRef<Set<string>>(new Set())
 
   const triggerFlash = useCallback((panelClass: string) => {
     const el = document.querySelector(`.side-panel.${panelClass}`)
@@ -72,24 +76,40 @@ export default function App() {
     el.classList.add('flash-effect')
   }, [])
 
+  const showElimModal = useCallback((name: string) => {
+    if (elimTimerRef.current) clearTimeout(elimTimerRef.current)
+    setElimModal(name)
+    elimTimerRef.current = setTimeout(() => setElimModal(null), ELIM_MODAL_DURATION)
+  }, [])
+
   // Detect eliminations, rebuys, and level changes
-  const eliminatedCount = state.players.filter((p) => p.status === 'eliminated').length
+  const eliminatedPlayers = state.players.filter((p) => p.status === 'eliminated')
+  const eliminatedCount = eliminatedPlayers.length
   const rebuyCount = state.totalRebuys
 
   useEffect(() => {
+    const currentNames = new Set(eliminatedPlayers.map((p) => p.name))
+
     // Skip first render (initial load)
     if (prevEliminatedRef.current === -1) {
       prevEliminatedRef.current = eliminatedCount
       prevRebuysRef.current = rebuyCount
       prevLevelRef.current = state.currentLevel
+      prevEliminatedNamesRef.current = currentNames
       return
     }
 
     if (eliminatedCount > prevEliminatedRef.current) {
       playElimination()
       triggerFlash('eliminados')
+      // Find the newly eliminated player (name not in previous set)
+      const newlyEliminated = eliminatedPlayers.find((p) => !prevEliminatedNamesRef.current.has(p.name))
+      if (newlyEliminated) {
+        showElimModal(newlyEliminated.name)
+      }
     }
     prevEliminatedRef.current = eliminatedCount
+    prevEliminatedNamesRef.current = currentNames
 
     if (rebuyCount > prevRebuysRef.current) {
       playRebuy()
@@ -101,7 +121,7 @@ export default function App() {
       playLevelUp()
     }
     prevLevelRef.current = state.currentLevel
-  }, [eliminatedCount, rebuyCount, state.currentLevel, playElimination, playRebuy, playLevelUp, triggerFlash])
+  }, [eliminatedCount, rebuyCount, state.currentLevel, eliminatedPlayers, playElimination, playRebuy, playLevelUp, triggerFlash, showElimModal])
 
   // Rotate between stats and prizes every 8 seconds
   useEffect(() => {
@@ -198,6 +218,16 @@ export default function App() {
             <PrizesRow prizeBreakdown={prizeBreakdown} />
           </div>
         </div>
+
+        {/* Elimination popup */}
+        {elimModal && (
+          <div className="elim-modal-backdrop">
+            <div className="elim-modal">
+              <img src={`${import.meta.env.BASE_URL}eliminado.jpg`} alt="Eliminado" className="elim-modal-img" />
+              <div className="elim-modal-name">{elimModal}</div>
+            </div>
+          </div>
+        )}
 
         {/* Champion Modal - inside stage so it scales with it */}
         {showChampion && championNameDisplay && (
