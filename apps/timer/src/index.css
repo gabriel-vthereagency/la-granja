@@ -61,18 +61,13 @@ html, body {
 .timer-stage {
   width: 1920px;
   height: 1080px;
-  /* Absolute center: push to 50%/50% then offset by half its own size */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform-origin: 0 0;
   background: radial-gradient(circle at top, #0b1120 0%, var(--bg-primary) 55%);
   display: flex;
   flex-direction: column;
   padding: 20px 32px 16px;
   gap: 16px;
-  /* Scale + centering applied via JavaScript (inline style) */
-  /* Override via URL: /reloj?scale=0.6 */
+  /* Position, scale, and transform-origin all set via JS inline style */
+  /* Override scale via URL: /reloj?scale=0.6 */
 }
 
 /* Debug overlay - remove after tuning */

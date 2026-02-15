@@ -14,23 +14,35 @@ const STAGE_W = 1920
 const STAGE_H = 1080
 
 function useStageScale() {
-  const [scale, setScale] = useState(1)
+  const [stageStyle, setStageStyle] = useState<React.CSSProperties>({})
   const [debugInfo, setDebugInfo] = useState('')
   const stageRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Allow override via URL: ?scale=0.6
     const params = new URLSearchParams(window.location.search)
     const override = params.get('scale')
 
     const calc = () => {
       const vw = window.innerWidth
       const vh = window.innerHeight
-      const sx = vw / STAGE_W
-      const sy = vh / STAGE_H
-      const s = override ? parseFloat(override) : Math.min(sx, sy) * 0.92
-      setScale(s)
-      setDebugInfo(`${vw}x${vh} | sx=${sx.toFixed(2)} sy=${sy.toFixed(2)} | scale=${s.toFixed(3)}`)
+      const s = override ? parseFloat(override) : Math.min(vw / STAGE_W, vh / STAGE_H) * 0.92
+
+      // Scaled dimensions
+      const scaledW = STAGE_W * s
+      const scaledH = STAGE_H * s
+
+      // Center in viewport
+      const left = (vw - scaledW) / 2
+      const top = (vh - scaledH) / 2
+
+      setStageStyle({
+        position: 'absolute',
+        left: `${left}px`,
+        top: `${top}px`,
+        transform: `scale(${s})`,
+        transformOrigin: 'top left',
+      })
+      setDebugInfo(`${vw}x${vh} | ${scaledW.toFixed(0)}x${scaledH.toFixed(0)} | scale=${s.toFixed(3)}`)
     }
 
     calc()
@@ -38,13 +50,13 @@ function useStageScale() {
     return () => window.removeEventListener('resize', calc)
   }, [])
 
-  return { scale, stageRef, debugInfo }
+  return { stageStyle, stageRef, debugInfo }
 }
 
 export default function App() {
   const { state, loading, error } = useLiveTournament()
   const [showStats, setShowStats] = useState(true)
-  const { scale, stageRef, debugInfo } = useStageScale()
+  const { stageStyle, stageRef, debugInfo } = useStageScale()
 
   // Rotate between stats and prizes every 8 seconds
   useEffect(() => {
@@ -103,7 +115,7 @@ export default function App() {
       <div
         className="timer-stage"
         ref={stageRef}
-        style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
+        style={stageStyle}
       >
         {/* Header */}
         <Header
