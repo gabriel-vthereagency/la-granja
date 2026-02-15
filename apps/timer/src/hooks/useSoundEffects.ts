@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -13,6 +13,7 @@ export function useSoundEffects() {
   const rebuyRef = useRef<HTMLAudioElement | null>(null)
   const levelUpRef = useRef<HTMLAudioElement | null>(null)
   const nextElimSoundRef = useRef(0) // alternates 0/1
+  const unlockedRef = useRef(false)
 
   // Lazy-init audio elements (only created once)
   const getElimSound1 = () => {
@@ -39,6 +40,45 @@ export function useSoundEffects() {
     }
     return levelUpRef.current
   }
+
+  // Unlock audio on first user interaction (required by browser autoplay policy)
+  useEffect(() => {
+    const unlock = () => {
+      if (unlockedRef.current) return
+      unlockedRef.current = true
+      // Create and play a silent audio context to unlock
+      const ctx = new AudioContext()
+      const buf = ctx.createBuffer(1, 1, 22050)
+      const src = ctx.createBufferSource()
+      src.buffer = buf
+      src.connect(ctx.destination)
+      src.start()
+      // Also pre-load all sounds with a muted play
+      const sounds = [getElimSound1(), getElimSound2(), getRebuySound(), getLevelUpSound()]
+      for (const s of sounds) {
+        s.volume = 0
+        s.play().then(() => {
+          s.pause()
+          s.currentTime = 0
+          s.volume = 1
+        }).catch(() => { /* ignore */ })
+      }
+      console.log('[Timer] Audio unlocked via user interaction')
+      document.removeEventListener('click', unlock)
+      document.removeEventListener('touchstart', unlock)
+      document.removeEventListener('keydown', unlock)
+    }
+
+    document.addEventListener('click', unlock)
+    document.addEventListener('touchstart', unlock)
+    document.addEventListener('keydown', unlock)
+
+    return () => {
+      document.removeEventListener('click', unlock)
+      document.removeEventListener('touchstart', unlock)
+      document.removeEventListener('keydown', unlock)
+    }
+  }, [])
 
   const playElimination = useCallback(() => {
     const sound = nextElimSoundRef.current === 0 ? getElimSound1() : getElimSound2()
