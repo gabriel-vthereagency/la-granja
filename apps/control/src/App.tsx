@@ -189,6 +189,7 @@ export default function App() {
           eventId={state.eventId}
           onConfirm={saveResults}
           onClose={() => setShowChampionModal(false)}
+          onSetTournamentInfo={setTournamentInfo}
         />
       )}
 

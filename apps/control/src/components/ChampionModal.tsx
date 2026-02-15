@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import type { LivePlayer } from "@lagranja/types";
+import type { SeasonType } from "@lagranja/core";
 import {
   calculatePrizePool,
   formatCurrency,
   getPointsForPosition,
 } from "@lagranja/core";
+import { useSeasons } from "../hooks/useSeasons";
 
 // Numero de WhatsApp para backup de resultados (sin el +)
 const WHATSAPP_BACKUP_NUMBER = "5491151010968"; // TODO: Configurar numero real
@@ -17,6 +19,13 @@ interface ChampionModalProps {
   eventId: string | null;
   onConfirm: () => Promise<boolean>;
   onClose: () => void;
+  onSetTournamentInfo: (info: {
+    eventId?: string | null;
+    tournamentName?: string | null;
+    seasonName?: string | null;
+    eventNumber?: number | null;
+    totalEvents?: number | null;
+  }) => Promise<void>;
 }
 
 export function ChampionModal({
@@ -27,9 +36,16 @@ export function ChampionModal({
   eventId,
   onConfirm,
   onClose,
+  onSetTournamentInfo,
 }: ChampionModalProps) {
+  const { resolveEvent } = useSeasons();
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [manualSeasonType, setManualSeasonType] = useState<SeasonType>("clausura");
+  const [manualEventNumber, setManualEventNumber] = useState<string>("");
+  const [isResolving, setIsResolving] = useState(false);
+  const [resolveError, setResolveError] = useState<string | null>(null);
+  const [resolvedEventId, setResolvedEventId] = useState<string | null>(eventId);
 
   // Obtener jugadores ordenados por posicion (forzar campeon en #1 si falta)
   const sortedPlayers = useMemo(() => {
@@ -77,6 +93,36 @@ export function ChampionModal({
   }, [players, totalRebuys, prizeBreakdown.netPool, sortedPlayers]);
 
   const whatsappUrl = `https://wa.me/${WHATSAPP_BACKUP_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
+
+  const handleResolveEvent = async () => {
+    const num = parseInt(manualEventNumber, 10);
+    if (!num || num < 1) {
+      setResolveError("Ingresá un número de fecha válido");
+      return;
+    }
+    setIsResolving(true);
+    setResolveError(null);
+    try {
+      const resolved = await resolveEvent(manualSeasonType, num);
+      if (resolved) {
+        setResolvedEventId(resolved.event.id);
+        await onSetTournamentInfo({
+          eventId: resolved.event.id,
+          seasonName: resolved.season.name,
+          tournamentName: getSeasonDisplayName(manualSeasonType),
+          eventNumber: num,
+        });
+      } else {
+        setResolveError("No se pudo resolver el evento");
+      }
+    } catch {
+      setResolveError("Error al resolver evento");
+    } finally {
+      setIsResolving(false);
+    }
+  };
+
+  const activeEventId = resolvedEventId ?? eventId;
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -183,9 +229,46 @@ export function ChampionModal({
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-700">
-          {!eventId && (
-            <p className="text-yellow-500 text-sm mb-3 text-center">
-              No hay evento asociado. Los resultados no se guardaran.
+          {!activeEventId && (
+            <div className="mb-3 space-y-2">
+              <p className="text-yellow-500 text-sm text-center">
+                No hay evento asociado. Seleccioná la temporada y fecha:
+              </p>
+              <div className="flex gap-2">
+                <select
+                  value={manualSeasonType}
+                  onChange={(e) => setManualSeasonType(e.target.value as SeasonType)}
+                  className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm"
+                >
+                  <option value="apertura">Apertura</option>
+                  <option value="clausura">Clausura</option>
+                  <option value="summer">Summer Cup</option>
+                </select>
+                <input
+                  type="number"
+                  value={manualEventNumber}
+                  onChange={(e) => setManualEventNumber(e.target.value)}
+                  placeholder="Fecha #"
+                  min="1"
+                  className="w-24 px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm"
+                />
+                <button
+                  onClick={handleResolveEvent}
+                  disabled={isResolving || !manualEventNumber}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 rounded text-white text-sm font-medium"
+                >
+                  {isResolving ? "..." : "Asociar"}
+                </button>
+              </div>
+              {resolveError && (
+                <p className="text-red-400 text-xs text-center">{resolveError}</p>
+              )}
+            </div>
+          )}
+
+          {activeEventId && !saved && (
+            <p className="text-green-400 text-xs mb-2 text-center">
+              Evento asociado correctamente
             </p>
           )}
 
@@ -218,7 +301,7 @@ export function ChampionModal({
                 >
                   Cerrar
                 </button>
-                {eventId && (
+                {activeEventId && (
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
@@ -243,4 +326,15 @@ export function ChampionModal({
       </div>
     </div>
   );
+}
+
+function getSeasonDisplayName(type: SeasonType): string {
+  switch (type) {
+    case "apertura":
+      return "Apertura";
+    case "clausura":
+      return "Clausura";
+    case "summer":
+      return "Summer Cup";
+  }
 }
