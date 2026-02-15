@@ -247,6 +247,7 @@ export function useTournamentControl() {
 
     const dbUpdates: Record<string, unknown> = {}
 
+    if (updates.eventId !== undefined) dbUpdates.event_id = updates.eventId
     if (updates.currentLevel !== undefined) dbUpdates.current_level = updates.currentLevel
     if (updates.timeRemaining !== undefined) dbUpdates.time_remaining = updates.timeRemaining
     if (updates.isPaused !== undefined) dbUpdates.is_paused = updates.isPaused
@@ -410,16 +411,18 @@ export function useTournamentControl() {
             // Guardar posición 1 del campeón en la DB
             const champion = updatedPlayers.find((p) => p.status === 'active')
             if (champion?.id) {
-              supabase
+              void supabase
                 .from('live_tournament_players')
                 .update({ position: 1 })
                 .eq('id', champion.id)
+                .then(({ error: e }) => e && console.error('[Control] Champion pos update error:', e))
             }
           }
-          supabase
+          void supabase
             .from('live_tournament_state')
             .update(dbUpdates)
             .eq('id', stateIdRef.current!)
+            .then(({ error: e }) => e && console.error('[Control] Phase update error:', e))
         }
 
         return {
