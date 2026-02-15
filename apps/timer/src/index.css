@@ -69,8 +69,9 @@ html, body {
   flex-direction: column;
   padding: 20px 32px 16px;
   gap: 16px;
-  /* Fixed scale for projectors - simple and direct */
-  transform: scale(0.65);
+  /* Calculate scale based on viewport to fit without stretching */
+  /* Using 0.90 of smaller dimension for safe area */
+  transform: scale(min(calc(100vw / 1920 * 0.9), calc(100vh / 1080 * 0.9)));
 }
 
 /* Loading/Error messages */
