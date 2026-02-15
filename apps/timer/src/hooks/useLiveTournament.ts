@@ -176,18 +176,22 @@ export function useLiveTournament() {
           if (pauseToggled) {
             lastPausedRef.current = stateData.is_paused as boolean
 
-            // TIMER NUNCA ESCRIBE - Solo recibe comandos de Control
-            // Cuando pausamos, sincronizar con el tiempo que viene de la DB
             if (stateData.is_paused) {
-              setState((prev) => ({
-                ...prev,
-                isPaused: true,
-                timeRemaining: typeof stateData.time_remaining === 'number'
-                  ? (stateData.time_remaining as number)
-                  : prev.timeRemaining,
-              }))
+              // Al pausar: usar el tiempo LOCAL del Timer (más preciso que la DB)
+              // y sincronizarlo a la DB para que Control lo vea
+              setState((prev) => {
+                // Guardar tiempo local en DB
+                if (stateIdRef.current) {
+                  void supabase
+                    .from('live_tournament_state')
+                    .update({ time_remaining: prev.timeRemaining })
+                    .eq('id', stateIdRef.current)
+                    .then(({ error: e }) => e && console.error('[Timer] Pause sync error:', e))
+                }
+                return { ...prev, isPaused: true }
+              })
             } else {
-              // Unpausing - usar tiempo de DB
+              // Unpausing - usar tiempo de DB (que el Timer guardó al pausar)
               setState((prev) => ({
                 ...prev,
                 isPaused: false,
@@ -262,10 +266,11 @@ export function useLiveTournament() {
         const now = Date.now()
         if (now - lastSyncRef.current > 10000 && stateIdRef.current) {
           lastSyncRef.current = now
-          supabase
+          void supabase
             .from('live_tournament_state')
             .update({ time_remaining: newTime })
             .eq('id', stateIdRef.current)
+            .then(({ error: e }) => e && console.error('[Timer] Sync error:', e))
         }
 
         // Si llega a 0, pausar y notificar
@@ -274,7 +279,7 @@ export function useLiveTournament() {
           if (nextLevelIndex < BLIND_STRUCTURE.length) {
             const nextLevel = BLIND_STRUCTURE[nextLevelIndex]
             if (stateIdRef.current) {
-              supabase
+              void supabase
                 .from('live_tournament_state')
                 .update({
                   current_level: nextLevelIndex,
@@ -282,6 +287,7 @@ export function useLiveTournament() {
                   is_paused: false,
                 })
                 .eq('id', stateIdRef.current)
+                .then(({ error: e }) => e && console.error('[Timer] Level advance error:', e))
             }
             lastLevelRef.current = nextLevelIndex
             lastPausedRef.current = false
@@ -294,10 +300,11 @@ export function useLiveTournament() {
           }
 
           if (stateIdRef.current) {
-            supabase
+            void supabase
               .from('live_tournament_state')
               .update({ time_remaining: 0, is_paused: true })
               .eq('id', stateIdRef.current)
+              .then(({ error: e }) => e && console.error('[Timer] End error:', e))
           }
           lastPausedRef.current = true
           return { ...prev, timeRemaining: 0, isPaused: true }
