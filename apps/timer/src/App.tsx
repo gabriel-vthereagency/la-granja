@@ -25,7 +25,7 @@ function useStageScale() {
     const calc = () => {
       const vw = window.innerWidth
       const vh = window.innerHeight
-      const s = override ? parseFloat(override) : Math.min(vw / STAGE_W, vh / STAGE_H) * 1.0
+      const s = override ? parseFloat(override) : Math.min(vw / STAGE_W, vh / STAGE_H) * 0.98
 
       // Scaled dimensions
       const scaledW = STAGE_W * s

@@ -64,8 +64,8 @@ html, body {
   background: radial-gradient(circle at top, #0b1120 0%, var(--bg-primary) 55%);
   display: flex;
   flex-direction: column;
-  padding: 20px 32px 16px;
-  gap: 16px;
+  padding: 24px 32px 20px;
+  gap: 20px;
   /* Position, scale, and transform-origin all set via JS inline style */
   /* Override scale via URL: /reloj?scale=0.6 */
 }
@@ -166,7 +166,6 @@ html, body {
   grid-template-columns: 1fr 2.5fr 1fr;
   gap: 16px;
   min-height: 0;
-  max-height: 580px;
 }
 
 /* ==================== SIDE PANELS ==================== */
