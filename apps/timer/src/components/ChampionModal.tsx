@@ -1,24 +1,23 @@
 import type { LivePlayer } from '@lagranja/types'
 import logoImg from '/logo.png'
 import laurelesImg from '/laureles.png'
+import monkeyImg from '/Monkey-Selfie.webp'
 
 interface ChampionModalProps {
   championName: string
   players: LivePlayer[]
 }
 
-const DEFAULT_AVATAR = '/Players/mono1.png'
-const FALLBACK_AVATARS = ['/Players/mono1.png', '/Players/mono2.png', '/Players/mono-3.png']
-
 function getPlayerPhoto(player: LivePlayer | undefined): string {
-  if (!player) return DEFAULT_AVATAR
+  if (!player) return monkeyImg
   return `/Players/${player.playerId}.png`
 }
 
-function getFallbackAvatar(player: LivePlayer | undefined): string {
-  if (!player) return DEFAULT_AVATAR
-  const hash = player.playerId.charCodeAt(0) % FALLBACK_AVATARS.length
-  return FALLBACK_AVATARS[hash] ?? DEFAULT_AVATAR
+function handleImgError(e: React.SyntheticEvent<HTMLImageElement>) {
+  const img = e.currentTarget
+  if (img.dataset.fallback) return // Prevent infinite loop
+  img.dataset.fallback = '1'
+  img.src = monkeyImg
 }
 
 export function ChampionModal({ championName, players }: ChampionModalProps) {
@@ -47,7 +46,7 @@ export function ChampionModal({ championName, players }: ChampionModalProps) {
               <img
                 src={getPlayerPhoto(top2)}
                 alt={top2?.name ?? 'Jugador'}
-                onError={(e) => { (e.target as HTMLImageElement).src = getFallbackAvatar(top2) }}
+                onError={handleImgError}
               />
             </div>
             <div className="champion-rank">#2</div>
@@ -59,7 +58,7 @@ export function ChampionModal({ championName, players }: ChampionModalProps) {
               <img
                 src={getPlayerPhoto(top1)}
                 alt={top1?.name ?? 'Campeon'}
-                onError={(e) => { (e.target as HTMLImageElement).src = getFallbackAvatar(top1) }}
+                onError={handleImgError}
               />
             </div>
             <div className="champion-badge">
@@ -75,7 +74,7 @@ export function ChampionModal({ championName, players }: ChampionModalProps) {
               <img
                 src={getPlayerPhoto(top3)}
                 alt={top3?.name ?? 'Jugador'}
-                onError={(e) => { (e.target as HTMLImageElement).src = getFallbackAvatar(top3) }}
+                onError={handleImgError}
               />
             </div>
             <div className="champion-rank">#3</div>

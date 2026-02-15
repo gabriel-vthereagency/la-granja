@@ -70,19 +70,6 @@ html, body {
   /* Override scale via URL: /reloj?scale=0.6 */
 }
 
-/* Debug overlay - remove after tuning */
-.debug-overlay {
-  position: fixed;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.8);
-  color: #0f0;
-  font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  z-index: 9999;
-  font-family: monospace;
-}
 
 /* Loading/Error messages */
 .loading-message,
