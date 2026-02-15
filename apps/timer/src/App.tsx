@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLiveTournament } from './hooks/useLiveTournament'
 import { calculateTournamentStats, calculatePrizePool } from '@lagranja/core'
 import type { GamePhase } from '@lagranja/types'
@@ -10,10 +10,40 @@ import { PrizesRow } from './components/PrizesRow'
 import { ChampionModal } from './components/ChampionModal'
 
 const ROTATION_INTERVAL = 8000 // 8 seconds between stats/prizes
+const STAGE_W = 1920
+const STAGE_H = 1080
+
+function useStageScale() {
+  const [scale, setScale] = useState(1)
+  const stageRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    // Allow override via URL: ?scale=0.6
+    const params = new URLSearchParams(window.location.search)
+    const override = params.get('scale')
+
+    const calc = () => {
+      if (override) {
+        setScale(parseFloat(override))
+        return
+      }
+      const sx = window.innerWidth / STAGE_W
+      const sy = window.innerHeight / STAGE_H
+      setScale(Math.min(sx, sy) * 0.92)
+    }
+
+    calc()
+    window.addEventListener('resize', calc)
+    return () => window.removeEventListener('resize', calc)
+  }, [])
+
+  return { scale, stageRef }
+}
 
 export default function App() {
   const { state, loading, error } = useLiveTournament()
   const [showStats, setShowStats] = useState(true)
+  const { scale, stageRef } = useStageScale()
 
   // Rotate between stats and prizes every 8 seconds
   useEffect(() => {
@@ -69,7 +99,11 @@ export default function App() {
 
   return (
     <div className="timer-app">
-      <div className="timer-stage">
+      <div
+        className="timer-stage"
+        ref={stageRef}
+        style={{ transform: `scale(${scale})` }}
+      >
         {/* Header */}
         <Header
           tournamentName={tournamentName}

@@ -69,9 +69,8 @@ html, body {
   flex-direction: column;
   padding: 20px 32px 16px;
   gap: 16px;
-  /* Calculate scale based on viewport to fit without stretching */
-  /* Using 0.90 of smaller dimension for safe area */
-  transform: scale(min(calc(100vw / 1920 * 0.9), calc(100vh / 1080 * 0.9)));
+  /* Scale is calculated and applied via JavaScript (inline style) */
+  /* Override via URL: /reloj?scale=0.6 */
 }
 
 /* Loading/Error messages */
