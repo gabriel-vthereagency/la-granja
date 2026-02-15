@@ -15,6 +15,7 @@ const STAGE_H = 1080
 
 function useStageScale() {
   const [scale, setScale] = useState(1)
+  const [debugInfo, setDebugInfo] = useState('')
   const stageRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -23,13 +24,13 @@ function useStageScale() {
     const override = params.get('scale')
 
     const calc = () => {
-      if (override) {
-        setScale(parseFloat(override))
-        return
-      }
-      const sx = window.innerWidth / STAGE_W
-      const sy = window.innerHeight / STAGE_H
-      setScale(Math.min(sx, sy) * 0.92)
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      const sx = vw / STAGE_W
+      const sy = vh / STAGE_H
+      const s = override ? parseFloat(override) : Math.min(sx, sy) * 0.92
+      setScale(s)
+      setDebugInfo(`${vw}x${vh} | sx=${sx.toFixed(2)} sy=${sy.toFixed(2)} | scale=${s.toFixed(3)}`)
     }
 
     calc()
@@ -37,13 +38,13 @@ function useStageScale() {
     return () => window.removeEventListener('resize', calc)
   }, [])
 
-  return { scale, stageRef }
+  return { scale, stageRef, debugInfo }
 }
 
 export default function App() {
   const { state, loading, error } = useLiveTournament()
   const [showStats, setShowStats] = useState(true)
-  const { scale, stageRef } = useStageScale()
+  const { scale, stageRef, debugInfo } = useStageScale()
 
   // Rotate between stats and prizes every 8 seconds
   useEffect(() => {
@@ -141,6 +142,9 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Debug overlay - remove after tuning */}
+      <div className="debug-overlay">{debugInfo}</div>
 
       {/* Champion Modal */}
       {showChampion && championNameDisplay && (

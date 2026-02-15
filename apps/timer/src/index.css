@@ -53,11 +53,11 @@ html, body {
 .timer-app {
   width: 100vw;
   height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background: var(--bg-primary);
   overflow: hidden;
+  /* Grid places the stage at center without affecting its layout size */
+  display: grid;
+  place-items: center;
 }
 
 .timer-stage {
@@ -71,6 +71,20 @@ html, body {
   gap: 16px;
   /* Scale is calculated and applied via JavaScript (inline style) */
   /* Override via URL: /reloj?scale=0.6 */
+}
+
+/* Debug overlay - remove after tuning */
+.debug-overlay {
+  position: fixed;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.8);
+  color: #0f0;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  z-index: 9999;
+  font-family: monospace;
 }
 
 /* Loading/Error messages */
