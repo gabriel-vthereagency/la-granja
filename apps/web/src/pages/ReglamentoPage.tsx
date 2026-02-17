@@ -19,8 +19,27 @@ export function ReglamentoPage() {
   const [submitted, setSubmitted] = useState(false)
   const [activeTab, setActiveTab] = useState('torneo-regular')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [sending, setSending] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!suggestion.trim()) return
+    setSending(true)
+    try {
+      const name = author.trim() || 'Anónimo'
+      const text = `📩 *Sugerencia de ${name}*\n\n${suggestion.trim()}`
+      await fetch(
+        `https://api.telegram.org/bot8593930690:AAEMPBFdqFodlVmUdSQdimTcQEAzMnGv6wA/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: -5175764954, text, parse_mode: 'Markdown' }),
+        }
+      )
+    } catch {
+      // Silently fail - still show success to user
+    }
+    setSending(false)
     setSubmitted(true)
     setSubmittedAuthor(author.trim())
     setAuthor('')
@@ -244,7 +263,7 @@ export function ReglamentoPage() {
             />
             <button
               type="submit"
-              disabled={!suggestion.trim() || !author.trim()}
+              disabled={!suggestion.trim() || !author.trim() || sending}
               className="px-6 py-2.5 bg-accent hover:bg-accent-light disabled:bg-surface-4 disabled:text-text-tertiary disabled:cursor-not-allowed rounded-xl font-medium transition"
             >
               Enviar
