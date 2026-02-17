@@ -28,14 +28,15 @@ export function ReglamentoPage() {
     try {
       const name = author.trim() || 'Anónimo'
       const text = `📩 *Sugerencia de ${name}*\n\n${suggestion.trim()}`
-      await fetch(
-        `https://api.telegram.org/bot8593930690:AAEMPBFdqFodlVmUdSQdimTcQEAzMnGv6wA/sendMessage`,
-        {
+      const tgToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
+      const tgChat = import.meta.env.VITE_TELEGRAM_CHAT_ID
+      if (tgToken && tgChat) {
+        await fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: -5175764954, text, parse_mode: 'Markdown' }),
-        }
-      )
+          body: JSON.stringify({ chat_id: Number(tgChat), text, parse_mode: 'Markdown' }),
+        })
+      }
     } catch {
       // Silently fail - still show success to user
     }
