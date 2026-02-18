@@ -1,4 +1,4 @@
-import { PRIZE_DISTRIBUTION, VENUE_PERCENTAGE, F7_PERCENTAGE } from '@lagranja/types'
+import { PRIZE_DISTRIBUTION } from '@lagranja/types'
 
 export interface PrizeCalculation {
   position: number
@@ -21,11 +21,9 @@ export interface PrizePoolBreakdown {
 /**
  * Calcula el pozo total y la distribución de premios
  *
- * Distribución del pozo bruto:
- * - 10% sede (VENUE_PERCENTAGE)
- * - 10% fondo final offline F7 (F7_PERCENTAGE)
- * - 80% premios a jugadores:
- *   - 1° 40%, 2° 25%, 3° 15%, 4° 10%
+ * El 100% de las entradas y rebuys va al pozo de premios.
+ * La sede y el fondo F7 se pagan aparte (no se descuentan del pozo).
+ * Distribución: 1° 40%, 2° 25%, 3° 15%, 4° 10%
  */
 export function calculatePrizePool(
   entries: number,
@@ -34,9 +32,9 @@ export function calculatePrizePool(
 ): PrizePoolBreakdown {
   const totalBuyIns = entries + rebuys
   const grossPool = totalBuyIns * buyInAmount
-  const venueAmount = (grossPool * VENUE_PERCENTAGE) / 100
-  const f7Amount = (grossPool * F7_PERCENTAGE) / 100
-  const netPool = grossPool - venueAmount - f7Amount
+  const venueAmount = 0
+  const f7Amount = 0
+  const netPool = grossPool
 
   const prizes: PrizeCalculation[] = PRIZE_DISTRIBUTION.map((dist) => ({
     position: dist.position,
