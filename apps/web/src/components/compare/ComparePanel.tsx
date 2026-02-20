@@ -98,14 +98,16 @@ function PlayerColumnHeader({ slot, index }: { slot: CompareSlot; index: number 
           <img
             src={photoSrc}
             alt={player.name}
-            className="w-full h-full object-cover object-top scale-[1.8]"
+            className="w-full h-full object-cover object-top"
+            style={{ transform: 'scale(1.8)', transformOrigin: 'top center' }}
             onError={() => setPhotoState('fallback')}
           />
         ) : photoState === 'fallback' ? (
           <img
             src={fallbackSrc}
             alt=""
-            className="w-full h-full object-cover object-top scale-[1.8] opacity-90"
+            className="w-full h-full object-cover object-top opacity-90"
+            style={{ transform: 'scale(1.8)', transformOrigin: 'top center' }}
             onError={() => setPhotoState('emoji')}
           />
         ) : (
@@ -158,22 +160,31 @@ export function ComparePanel({ selectedIds, onClose }: ComparePanelProps) {
           </button>
         </div>
 
-        {/* Player headers */}
-        <div className="flex justify-center gap-8 mb-8">
-          {slots.map((slot, i) => (
-            <PlayerColumnHeader key={selectedIds[i]} slot={slot} index={i} />
-          ))}
-        </div>
-
-        {/* Stats table */}
+        {/* Stats table with aligned headers */}
         <div className="rounded-xl border border-glass-border overflow-hidden">
           <div className="overflow-x-auto">
             <motion.table
-              className="w-full"
+              className="w-full table-fixed"
               variants={staggerFast}
               initial="initial"
               animate="animate"
             >
+              <colgroup>
+                <col className="w-[140px] sm:w-[180px]" />
+                {selectedIds.map((id) => (
+                  <col key={id} />
+                ))}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th className="px-4 py-6" />
+                  {slots.map((slot, i) => (
+                    <th key={selectedIds[i]} className="px-4 py-6 align-bottom">
+                      <PlayerColumnHeader slot={slot} index={i} />
+                    </th>
+                  ))}
+                </tr>
+              </thead>
               <tbody>
                 {COMPARE_STATS.map((stat, rowIndex) => {
                   const values = loadedProfiles.map((s) => getStatValue(s.profile!, stat.key))

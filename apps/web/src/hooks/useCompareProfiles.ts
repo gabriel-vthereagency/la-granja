@@ -17,13 +17,8 @@ export function useCompareProfiles(ids: string[]): CompareSlot[] {
     () => fetchPlayerProfile(ids[1]!),
     { revalidateOnFocus: false }
   )
-  const slot2 = useSWR(
-    ids[2] ? `player-${ids[2]}` : null,
-    () => fetchPlayerProfile(ids[2]!),
-    { revalidateOnFocus: false }
-  )
 
-  const slots = [slot0, slot1, slot2]
+  const slots = [slot0, slot1]
 
   return ids.map((_, i) => ({
     profile: slots[i]?.data ?? null,

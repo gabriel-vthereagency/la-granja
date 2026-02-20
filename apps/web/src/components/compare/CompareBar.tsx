@@ -38,14 +38,16 @@ function Thumbnail({
           <img
             src={photoSrc}
             alt={player.name}
-            className="w-full h-full object-cover object-top scale-[1.8]"
+            className="w-full h-full object-cover object-top"
+            style={{ transform: 'scale(1.8)', transformOrigin: 'top center' }}
             onError={() => setPhotoState('fallback')}
           />
         ) : photoState === 'fallback' ? (
           <img
             src={fallbackSrc}
             alt=""
-            className="w-full h-full object-cover object-top scale-[1.8] opacity-90"
+            className="w-full h-full object-cover object-top opacity-90"
+            style={{ transform: 'scale(1.8)', transformOrigin: 'top center' }}
             onError={() => setPhotoState('emoji')}
           />
         ) : (
@@ -96,13 +98,13 @@ export function CompareBar({ selectedPlayers, onDeselect, onCompare, onExit }: C
               ))}
             </AnimatePresence>
             {selectedPlayers.length === 0 && (
-              <span className="text-text-tertiary text-sm">Selecciona hasta 3 jugadores</span>
+              <span className="text-text-tertiary text-sm">Selecciona 2 jugadores</span>
             )}
           </div>
 
           {/* Counter */}
           <span className="text-text-tertiary text-xs whitespace-nowrap">
-            {selectedPlayers.length}/3
+            {selectedPlayers.length}/2
           </span>
 
           {/* Actions */}

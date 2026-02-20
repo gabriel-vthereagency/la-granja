@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom'
 import { useCallback } from 'react'
 
-const MAX_COMPARE = 3
+const MAX_COMPARE = 2
 
 export function useCompareState() {
   const [params, setParams] = useSearchParams()
