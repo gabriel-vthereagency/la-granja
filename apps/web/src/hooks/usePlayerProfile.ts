@@ -24,7 +24,7 @@ export interface PlayerProfile {
   }
 }
 
-async function fetchPlayerProfile(playerId: string): Promise<PlayerProfile> {
+export async function fetchPlayerProfile(playerId: string): Promise<PlayerProfile> {
   // Fetch player, aliases, and stats in parallel
   const [playerResult, aliasesResult, statsResult] = await Promise.all([
     supabase.from('players').select('*').eq('id', playerId).single(),

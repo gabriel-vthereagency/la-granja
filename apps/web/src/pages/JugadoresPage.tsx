@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { usePlayers, type PlayerCard } from '../hooks/usePlayers'
+import { useCompareState } from '../hooks/useCompareState'
 import { GlassCard, PageHeader, PageContainer } from '../components/ui'
+import { CompareBar } from '../components/compare/CompareBar'
+import { ComparePanel } from '../components/compare/ComparePanel'
 import { staggerContainer, staggerItem } from '../lib/motion'
 
 function getBadgeSrc(titles: number): string {
@@ -26,12 +29,17 @@ function getFallbackSrc(playerId: string): string {
 export function JugadoresPage() {
   const { players, loading, error } = usePlayers()
   const [search, setSearch] = useState('')
+  const compare = useCompareState()
 
   const filtered = players.filter(
     (p) =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.nickname?.toLowerCase().includes(search.toLowerCase())
   )
+
+  const selectedPlayers = compare.selectedIds
+    .map((id) => players.find((p) => p.id === id))
+    .filter((p): p is PlayerCard => p != null)
 
   if (loading) {
     return (
@@ -71,21 +79,39 @@ export function JugadoresPage() {
     <div className="space-y-6">
       <PageHeader title="Jugadores" />
 
-      {/* Buscador */}
-      <div>
+      {/* Search + Compare toggle */}
+      <div className="flex flex-col sm:flex-row gap-3">
         <input
           type="text"
           placeholder="Buscar por nombre o alias..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-96 px-4 py-2.5 bg-glass border border-glass-border rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition"
+          className="w-full sm:flex-1 md:max-w-96 px-4 py-2.5 bg-glass border border-glass-border rounded-xl text-text-primary placeholder-text-tertiary focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition"
         />
+        <button
+          onClick={compare.toggleCompareMode}
+          className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2 justify-center ${
+            compare.compareMode
+              ? 'bg-accent text-white shadow-[0_0_20px_rgba(239,68,68,0.25)]'
+              : 'bg-glass border border-glass-border text-text-secondary hover:text-text-primary hover:border-accent/40'
+          }`}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M2 4h5M9 4h5M2 8h5M9 8h5M2 12h5M9 12h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          {compare.compareMode ? 'Comparando...' : 'Comparar'}
+        </button>
       </div>
 
-      {/* Contador */}
+      {/* Counter */}
       <p className="text-text-tertiary text-sm">
         {filtered.length} jugador{filtered.length !== 1 ? 'es' : ''}
         {search && ` encontrado${filtered.length !== 1 ? 's' : ''}`}
+        {compare.compareMode && (
+          <span className="ml-2 text-accent-light">
+            — Selecciona jugadores para comparar
+          </span>
+        )}
       </p>
 
       {/* Desktop: Trading Cards */}
@@ -98,7 +124,14 @@ export function JugadoresPage() {
       >
         {filtered.map((player) => (
           <motion.div key={player.id} variants={staggerItem}>
-            <DesktopCard player={player} />
+            <DesktopCard
+              player={player}
+              compareMode={compare.compareMode}
+              isSelected={compare.isSelected(player.id)}
+              isFull={compare.isFull}
+              onSelect={() => compare.selectPlayer(player.id)}
+              onDeselect={() => compare.deselectPlayer(player.id)}
+            />
           </motion.div>
         ))}
       </motion.div>
@@ -113,7 +146,14 @@ export function JugadoresPage() {
       >
         {filtered.map((player) => (
           <motion.div key={player.id} variants={staggerItem}>
-            <MobileCard player={player} />
+            <MobileCard
+              player={player}
+              compareMode={compare.compareMode}
+              isSelected={compare.isSelected(player.id)}
+              isFull={compare.isFull}
+              onSelect={() => compare.selectPlayer(player.id)}
+              onDeselect={() => compare.deselectPlayer(player.id)}
+            />
           </motion.div>
         ))}
       </motion.div>
@@ -123,21 +163,74 @@ export function JugadoresPage() {
           No se encontraron jugadores
         </GlassCard>
       )}
+
+      {/* Extra bottom padding when CompareBar is visible */}
+      {compare.compareMode && <div className="h-24" />}
     </div>
+
+    {/* Compare Bar */}
+    <AnimatePresence>
+      {compare.compareMode && !compare.isFullView && (
+        <CompareBar
+          selectedPlayers={selectedPlayers}
+          onDeselect={compare.deselectPlayer}
+          onCompare={compare.openFullView}
+          onExit={compare.exitCompareMode}
+        />
+      )}
+    </AnimatePresence>
+
+    {/* Compare Panel (full overlay) */}
+    <AnimatePresence>
+      {compare.isFullView && (
+        <ComparePanel
+          selectedIds={compare.selectedIds}
+          onClose={compare.closeFullView}
+        />
+      )}
+    </AnimatePresence>
     </PageContainer>
   )
 }
 
-function DesktopCard({ player }: { player: PlayerCard }) {
+interface CardCompareProps {
+  player: PlayerCard
+  compareMode: boolean
+  isSelected: boolean
+  isFull: boolean
+  onSelect: () => void
+  onDeselect: () => void
+}
+
+function DesktopCard({ player, compareMode, isSelected, isFull, onSelect, onDeselect }: CardCompareProps) {
   const [photoState, setPhotoState] = useState<'primary' | 'fallback' | 'emoji'>('primary')
   const photoSrc = `/Players/${player.id}.png`
   const fallbackSrc = getFallbackSrc(player.id)
   const badgeSrc = getBadgeSrc(player.finalSevenTitles)
 
+  const disabled = compareMode && !isSelected && isFull
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!compareMode) return // Let the Link navigate
+    e.preventDefault()
+    if (isSelected) {
+      onDeselect()
+    } else if (!isFull) {
+      onSelect()
+    }
+  }
+
   return (
     <Link
       to={`/jugadores/${player.id}`}
-      className="group relative block rounded-xl overflow-hidden border border-glass-border hover:border-accent/40 transition-all duration-300 h-[420px]"
+      onClick={handleClick}
+      className={`group relative block rounded-xl overflow-hidden border transition-all duration-300 h-[420px] ${
+        isSelected
+          ? 'border-accent ring-2 ring-accent/40'
+          : disabled
+            ? 'border-glass-border opacity-40 cursor-not-allowed'
+            : 'border-glass-border hover:border-accent/40'
+      }`}
     >
       {/* Red radial gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-accent/15 via-surface-2/80 to-surface-1" />
@@ -150,11 +243,23 @@ function DesktopCard({ player }: { player: PlayerCard }) {
         className="absolute top-3 left-3 w-14 h-14 object-contain z-10 drop-shadow-lg"
       />
 
-      {/* Clickable hint — bottom-right */}
-      <div className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-glass/80 border border-glass-border flex items-center justify-center text-text-tertiary group-hover:border-accent/50 group-hover:text-accent-light transition-colors">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M7 2.5V11.5M2.5 7H11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
+      {/* Top-right: compare checkbox or clickable hint */}
+      <div className={`absolute top-3 right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
+        isSelected
+          ? 'bg-accent text-white border border-accent'
+          : compareMode
+            ? 'bg-glass/80 border border-glass-border text-text-tertiary group-hover:border-accent/50 group-hover:text-accent-light'
+            : 'bg-glass/80 border border-glass-border text-text-tertiary group-hover:border-accent/50 group-hover:text-accent-light'
+      }`}>
+        {isSelected ? (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 7L6 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 2.5V11.5M2.5 7H11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        )}
       </div>
 
       {/* Player photo */}
@@ -201,23 +306,57 @@ function DesktopCard({ player }: { player: PlayerCard }) {
   )
 }
 
-function MobileCard({ player }: { player: PlayerCard }) {
+function MobileCard({ player, compareMode, isSelected, isFull, onSelect, onDeselect }: CardCompareProps) {
   const [photoState, setPhotoState] = useState<'primary' | 'fallback' | 'emoji'>('primary')
   const photoSrc = `/Players/${player.id}.png`
   const fallbackSrc = getFallbackSrc(player.id)
   const badgeSrc = getBadgeSrc(player.finalSevenTitles)
 
+  const disabled = compareMode && !isSelected && isFull
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!compareMode) return
+    e.preventDefault()
+    if (isSelected) {
+      onDeselect()
+    } else if (!isFull) {
+      onSelect()
+    }
+  }
+
   return (
     <Link
       to={`/jugadores/${player.id}`}
-      className="group relative block rounded-xl overflow-hidden border border-glass-border hover:border-accent/40 transition-all duration-300 h-[110px]"
+      onClick={handleClick}
+      className={`group relative block rounded-xl overflow-hidden border transition-all duration-300 h-[110px] ${
+        isSelected
+          ? 'border-accent ring-2 ring-accent/40'
+          : disabled
+            ? 'border-glass-border opacity-40 cursor-not-allowed'
+            : 'border-glass-border hover:border-accent/40'
+      }`}
     >
       {/* Red gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-accent/15 via-surface-2/80 to-surface-1" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_50%,rgba(239,68,68,0.10)_0%,transparent_60%)]" />
 
+      {/* Selection indicator — top-left */}
+      {compareMode && (
+        <div className={`absolute top-2 left-2 z-20 w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200 ${
+          isSelected
+            ? 'bg-accent text-white border border-accent'
+            : 'bg-glass/80 border border-glass-border'
+        }`}>
+          {isSelected && (
+            <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
+              <path d="M3 7L6 10L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
+      )}
+
       {/* Left info column */}
-      <div className="absolute left-3 top-2.5 bottom-2.5 right-28 z-10 flex flex-col justify-between">
+      <div className={`absolute ${compareMode ? 'left-9' : 'left-3'} top-2.5 bottom-2.5 right-28 z-10 flex flex-col justify-between transition-all`}>
         {/* Name pill + member since — top */}
         <div>
           <div className="inline-flex self-start items-center px-3 py-0.5 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.15] to-white/[0.08] border border-white/[0.1]">
