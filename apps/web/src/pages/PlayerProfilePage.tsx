@@ -1,13 +1,19 @@
-import { useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { usePlayerProfile } from '../hooks/usePlayerProfile'
+import { usePlayerHistory } from '../hooks/usePlayerHistory'
 import { formatPoints } from '../utils/formatPoints'
 import { GlassCard, AnimatedCounter, PageHeader, CardSkeleton, PageContainer } from '../components/ui'
-import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
+import { fadeIn, staggerContainer, staggerItem, staggerFast } from '../lib/motion'
+
+const INITIAL_SHOW = 20
 
 export function PlayerProfilePage() {
   const { playerId } = useParams()
   const { profile, loading, error } = usePlayerProfile(playerId)
+  const { history, loading: historyLoading } = usePlayerHistory(playerId)
+  const [showAll, setShowAll] = useState(false)
 
   if (loading) {
     return (
@@ -197,6 +203,99 @@ export function PlayerProfilePage() {
             <div className="text-text-tertiary text-sm">Podios (top 5)</div>
           </GlassCard>
         </motion.div>
+      </motion.div>
+
+      {/* Historial de fechas */}
+      <motion.div variants={fadeIn} initial="initial" animate="animate">
+        <h2 className="text-lg font-medium mb-3 text-text-secondary">Últimas fechas</h2>
+        {historyLoading ? (
+          <GlassCard className="p-4">
+            <div className="space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-10 rounded-lg bg-surface-3/60 animate-pulse" />
+              ))}
+            </div>
+          </GlassCard>
+        ) : history.length === 0 ? (
+          <GlassCard className="p-6 text-center text-text-tertiary">
+            Sin resultados registrados
+          </GlassCard>
+        ) : (
+          <GlassCard className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <motion.table
+                className="w-full"
+                variants={staggerFast}
+                initial="initial"
+                animate="animate"
+              >
+                <thead>
+                  <tr className="border-b border-glass-border">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider">Fecha</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-text-tertiary uppercase tracking-wider">Pos</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-text-tertiary uppercase tracking-wider">Pts</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-text-tertiary uppercase tracking-wider hidden sm:table-cell">R</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-text-tertiary uppercase tracking-wider hidden sm:table-cell">Temporada</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(showAll ? history : history.slice(0, INITIAL_SHOW)).map((entry, i) => (
+                    <motion.tr
+                      key={`${entry.eventId}-${i}`}
+                      variants={staggerItem}
+                      className={`border-b border-glass-border/50 hover:bg-glass-hover transition-colors ${i % 2 === 0 ? 'bg-glass/20' : ''}`}
+                    >
+                      <td className="px-4 py-2.5">
+                        <Link
+                          to={`/historial/${entry.seasonId}/${entry.eventId}`}
+                          className="text-sm text-text-primary hover:text-accent-light transition-colors"
+                        >
+                          #{entry.eventNumber}
+                          <span className="text-text-tertiary ml-2 text-xs">
+                            {entry.date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                          </span>
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className={`text-sm font-semibold ${
+                          entry.position === 1 ? 'text-gold' :
+                          entry.position === 2 ? 'text-silver' :
+                          entry.position === 3 ? 'text-bronze' :
+                          'text-text-primary'
+                        }`}>
+                          {entry.position === 1 ? '🥇' : entry.position === 2 ? '🥈' : entry.position === 3 ? '🥉' : entry.position}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center">
+                        <span className="text-sm font-medium text-success">
+                          {formatPoints(entry.points)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-center hidden sm:table-cell">
+                        {entry.rebuys > 0 && (
+                          <span className="text-sm text-accent-light font-medium">
+                            {entry.rebuys}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-right hidden sm:table-cell">
+                        <span className="text-xs text-text-tertiary">{entry.seasonName}</span>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </motion.table>
+            </div>
+            {history.length > INITIAL_SHOW && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="w-full py-3 text-sm text-text-secondary hover:text-accent-light border-t border-glass-border hover:bg-glass-hover transition-colors"
+              >
+                {showAll ? 'Mostrar menos' : `Ver todas (${history.length})`}
+              </button>
+            )}
+          </GlassCard>
+        )}
       </motion.div>
     </div>
     </PageContainer>

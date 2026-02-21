@@ -16,6 +16,8 @@ export interface StatsData {
   topEffectiveness: StatsRow[]
   topWinRate: StatsRow[]
   topPresences: StatsRow[]
+  topRebuys: StatsRow[]
+  topBounties: StatsRow[]
 }
 
 const TOP_LIMIT = 10
@@ -93,6 +95,50 @@ async function fetchStats(): Promise<StatsData> {
         value: row.value,
       }))
 
+    // Fetch rebuys and bounties from event_results (not in the view)
+    const [rebuysRes, bountiesRes] = await Promise.all([
+      supabase
+        .from('event_results')
+        .select('player_id, rebuys, players(name)')
+        .gt('rebuys', 0),
+      supabase
+        .from('event_results')
+        .select('player_id, bounty_count, players(name)')
+        .gt('bounty_count', 0),
+    ])
+
+    const aggregateByPlayer = (
+      rows: Array<Record<string, unknown>>,
+      valueKey: string,
+    ): StatsRow[] => {
+      const map = new Map<string, { name: string; total: number }>()
+      for (const r of rows) {
+        const pid = r.player_id as string
+        const p = r.players as { name: string } | { name: string }[] | null
+        const name = Array.isArray(p) ? p[0]?.name : p?.name
+        if (!name) continue
+        const val = Number(r[valueKey]) || 0
+        const current = map.get(pid)
+        if (current) {
+          current.total += val
+        } else {
+          map.set(pid, { name, total: val })
+        }
+      }
+      return Array.from(map.entries())
+        .sort((a, b) => b[1].total - a[1].total)
+        .slice(0, TOP_LIMIT)
+        .map(([pid, v], i) => ({
+          rank: i + 1,
+          player: v.name,
+          playerId: pid,
+          value: v.total,
+        }))
+    }
+
+    const topRebuys = aggregateByPlayer(rebuysRes.data ?? [], 'rebuys')
+    const topBounties = aggregateByPlayer(bountiesRes.data ?? [], 'bounty_count')
+
     return {
       topPodiums,
       topWins,
@@ -101,6 +147,8 @@ async function fetchStats(): Promise<StatsData> {
       topEffectiveness,
       topWinRate,
       topPresences,
+      topRebuys,
+      topBounties,
     }
   }
 
@@ -145,6 +193,8 @@ async function fetchStats(): Promise<StatsData> {
       topEffectiveness: [],
       topWinRate: [],
       topPresences: [],
+      topRebuys: [],
+      topBounties: [],
     }
   }
 
@@ -252,24 +302,179 @@ async function fetchStats(): Promise<StatsData> {
     topEffectiveness,
     topWinRate,
     topPresences,
+    topRebuys: [],
+    topBounties: [],
   }
 }
 
-export function useStats() {
-  const { data, error, isLoading } = useSWR('global-stats', fetchStats, {
-    revalidateOnFocus: false,
-  })
+const EMPTY_STATS: StatsData = {
+  topPodiums: [],
+  topWins: [],
+  topLastPlaces: [],
+  topBubbles: [],
+  topEffectiveness: [],
+  topWinRate: [],
+  topPresences: [],
+  topRebuys: [],
+  topBounties: [],
+}
+
+const MIN_SEASON_EFFECTIVENESS_EVENTS = 5
+
+async function fetchSeasonStats(seasonId: string): Promise<StatsData> {
+  // Use player_season_stats view filtered by season
+  const [seasonStatsRes, lastPlacesRes, rebuysRes, bountiesRes] = await Promise.all([
+    supabase
+      .from('player_season_stats')
+      .select('*')
+      .eq('season_id', seasonId),
+    supabase
+      .from('player_season_last_places')
+      .select('*')
+      .eq('season_id', seasonId),
+    supabase
+      .from('event_results')
+      .select('player_id, rebuys, players(name), event_nights!inner(season_id)')
+      .eq('event_nights.season_id', seasonId)
+      .gt('rebuys', 0),
+    supabase
+      .from('event_results')
+      .select('player_id, bounty_count, players(name), event_nights!inner(season_id)')
+      .eq('event_nights.season_id', seasonId)
+      .gt('bounty_count', 0),
+  ])
+
+  if (seasonStatsRes.error || !seasonStatsRes.data?.length) return EMPTY_STATS
+
+  const players = seasonStatsRes.data
+
+  // Build last_places map from the view
+  const lastPlacesMap = new Map<string, number>()
+  for (const lp of lastPlacesRes.data ?? []) {
+    lastPlacesMap.set(lp.player_id, Number(lp.last_places))
+  }
+
+  const toTop = (
+    rows: Array<{ player_name: string; player_id: string; value: number }>
+  ): StatsRow[] => {
+    return rows
+      .filter((row) => row.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, TOP_LIMIT)
+      .map((row, index) => ({
+        rank: index + 1,
+        player: row.player_name,
+        playerId: row.player_id,
+        value: row.value,
+      }))
+  }
+
+  const topPodiums = toTop(
+    players.map((p) => ({ player_name: p.player_name, player_id: p.player_id, value: Number(p.podiums) }))
+  )
+  const topWins = toTop(
+    players.map((p) => ({ player_name: p.player_name, player_id: p.player_id, value: Number(p.golds) }))
+  )
+  const topLastPlaces = toTop(
+    players.map((p) => ({
+      player_name: p.player_name,
+      player_id: p.player_id,
+      value: lastPlacesMap.get(p.player_id) ?? 0,
+    }))
+  )
+  const topBubbles = toTop(
+    players.map((p) => ({ player_name: p.player_name, player_id: p.player_id, value: Number(p.bubbles) }))
+  )
+  const topPresences = toTop(
+    players.map((p) => ({ player_name: p.player_name, player_id: p.player_id, value: Number(p.events_played) }))
+  )
+  const topEffectiveness = players
+    .filter((p) => Number(p.events_played) >= MIN_SEASON_EFFECTIVENESS_EVENTS)
+    .map((p) => ({
+      player_name: p.player_name,
+      player_id: p.player_id,
+      value: Number(p.total_points) / Number(p.events_played),
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, TOP_LIMIT)
+    .map((row, index) => ({
+      rank: index + 1,
+      player: row.player_name,
+      playerId: row.player_id,
+      value: row.value,
+    }))
+
+  const topWinRate = players
+    .filter((p) => Number(p.events_played) >= MIN_SEASON_EFFECTIVENESS_EVENTS)
+    .map((p) => ({
+      player_name: p.player_name,
+      player_id: p.player_id,
+      value: (Number(p.golds) / Number(p.events_played)) * 100,
+    }))
+    .filter((row) => row.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, TOP_LIMIT)
+    .map((row, index) => ({
+      rank: index + 1,
+      player: row.player_name,
+      playerId: row.player_id,
+      value: row.value,
+    }))
+
+  const aggregateByPlayer = (
+    rows: Array<Record<string, unknown>>,
+    valueKey: string,
+  ): StatsRow[] => {
+    const map = new Map<string, { name: string; total: number }>()
+    for (const r of rows) {
+      const pid = r.player_id as string
+      const p = r.players as { name: string } | { name: string }[] | null
+      const name = Array.isArray(p) ? p[0]?.name : p?.name
+      if (!name) continue
+      const val = Number(r[valueKey]) || 0
+      const current = map.get(pid)
+      if (current) {
+        current.total += val
+      } else {
+        map.set(pid, { name, total: val })
+      }
+    }
+    return Array.from(map.entries())
+      .sort((a, b) => b[1].total - a[1].total)
+      .slice(0, TOP_LIMIT)
+      .map(([pid, v], i) => ({
+        rank: i + 1,
+        player: v.name,
+        playerId: pid,
+        value: v.total,
+      }))
+  }
+
+  const topRebuys = aggregateByPlayer(rebuysRes.data ?? [], 'rebuys')
+  const topBounties = aggregateByPlayer(bountiesRes.data ?? [], 'bounty_count')
 
   return {
-    stats: data ?? {
-      topPodiums: [],
-      topWins: [],
-      topLastPlaces: [],
-      topBubbles: [],
-      topEffectiveness: [],
-      topWinRate: [],
-      topPresences: [],
-    },
+    topPodiums,
+    topWins,
+    topLastPlaces,
+    topBubbles,
+    topEffectiveness,
+    topWinRate,
+    topPresences,
+    topRebuys,
+    topBounties,
+  }
+}
+
+export function useStats(seasonId: string | null = null) {
+  const { data, error, isLoading } = useSWR(
+    `stats-${seasonId ?? 'all'}`,
+    () => seasonId ? fetchSeasonStats(seasonId) : fetchStats(),
+    { revalidateOnFocus: false }
+  )
+
+  return {
+    stats: data ?? EMPTY_STATS,
     loading: isLoading,
     error: error?.message ?? null,
   }

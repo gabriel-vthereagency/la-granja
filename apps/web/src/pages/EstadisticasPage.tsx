@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStats, type StatsData, type StatsRow } from '../hooks/useStats'
+import { useSeasons } from '../hooks/useSeasons'
 import { formatPoints } from '../utils/formatPoints'
 import { GlassCard, CardSkeleton, PageHeader, PageContainer } from '../components/ui'
 import { staggerFast, tableRow } from '../lib/motion'
@@ -75,10 +76,28 @@ const STAT_CATEGORIES: StatCategory[] = [
     dataKey: 'topBubbles',
     valueLabel: 'Cantidad',
   },
+  {
+    id: 'rebuys',
+    label: 'Top Rebuys',
+    shortLabel: 'Rebuys',
+    image: '/top%20rebuys.png',
+    dataKey: 'topRebuys',
+    valueLabel: 'Cantidad',
+  },
+  {
+    id: 'bounties',
+    label: 'Top Bounties',
+    shortLabel: 'Bounties',
+    image: '/top%20bounties.png',
+    dataKey: 'topBounties',
+    valueLabel: 'Cantidad',
+  },
 ]
 
 export function EstadisticasPage() {
-  const { stats, loading, error } = useStats()
+  const [seasonId, setSeasonId] = useState<string | null>(null)
+  const { stats, loading, error } = useStats(seasonId)
+  const { seasons } = useSeasons()
   const [activeId, setActiveId] = useState('wins')
 
   const activeCategory = STAT_CATEGORIES.find((c) => c.id === activeId)!
@@ -90,7 +109,7 @@ export function EstadisticasPage() {
       <div className="space-y-6">
         <PageHeader title="Estadísticas" />
         <div className="grid grid-cols-3 md:grid-cols-7 gap-2 md:gap-3">
-          {Array.from({ length: 7 }).map((_, i) => (
+          {Array.from({ length: 9 }).map((_, i) => (
             <div key={i} className="h-[140px] rounded-xl bg-surface-3/60 animate-pulse" />
           ))}
         </div>
@@ -117,6 +136,35 @@ export function EstadisticasPage() {
     <PageContainer>
     <div className="space-y-6">
       <PageHeader title="Estadísticas" />
+
+      {/* Season selector */}
+      <div className="flex gap-2 overflow-x-auto pb-1 -mb-2">
+        <button
+          onClick={() => setSeasonId(null)}
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+            seasonId === null
+              ? 'bg-accent text-white shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+              : 'bg-glass border border-glass-border text-text-secondary hover:text-text-primary hover:border-accent/30'
+          }`}
+        >
+          Histórico
+        </button>
+        {seasons
+          .filter((s) => s.status === 'active' || s.status === 'finished')
+          .map((s) => (
+          <button
+            key={s.id}
+            onClick={() => setSeasonId(s.id)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+              seasonId === s.id
+                ? 'bg-accent text-white shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                : 'bg-glass border border-glass-border text-text-secondary hover:text-text-primary hover:border-accent/30'
+            }`}
+          >
+            {s.name}
+          </button>
+        ))}
+      </div>
 
       <StatCardSelector
         categories={STAT_CATEGORIES}

@@ -5,6 +5,7 @@ import { useSeasons } from '../hooks/useSeasons'
 import { useStandings } from '../hooks/useStandings'
 import { useLastPodium, type PodiumEntry } from '../hooks/useLastPodium'
 import { StandingsTable } from '../components/StandingsTable'
+import { LiveTournamentBanner } from '../components/LiveTournamentBanner'
 import { GlassCard, PageContainer, TableSkeleton } from '../components/ui'
 import {
   heroTitle,
@@ -209,6 +210,9 @@ export function HomePage() {
       {/* ═══ CONTENT — Constrained width ═══ */}
       <PageContainer>
         <div className="space-y-8">
+          {/* Live tournament banner */}
+          <LiveTournamentBanner />
+
           {/* Standings table */}
           <section id="standings" className="scroll-mt-20">
             {isLoading ? (
@@ -290,7 +294,7 @@ function HeroPodium({
           <motion.div variants={heroScale} className="flex flex-col items-center">
             <PodiumPhoto
               entry={second}
-              size="w-16 h-16 md:w-32 md:h-32 lg:w-40 lg:h-40"
+              size="w-20 h-20 md:w-32 md:h-32 lg:w-40 lg:h-40"
               ringColor="ring-silver"
               ringWidth="ring-2"
               badgeColor="bg-silver text-surface-1"
@@ -301,7 +305,7 @@ function HeroPodium({
           <motion.div variants={heroScale} className="flex flex-col items-center">
             <PodiumPhoto
               entry={first}
-              size="w-20 h-20 md:w-44 md:h-44 lg:w-52 lg:h-52"
+              size="w-24 h-24 md:w-44 md:h-44 lg:w-52 lg:h-52"
               ringColor="ring-gold"
               ringWidth="ring-4"
               glow="rgba(234,179,8,0.2)"
@@ -313,7 +317,7 @@ function HeroPodium({
           <motion.div variants={heroScale} className="flex flex-col items-center">
             <PodiumPhoto
               entry={third}
-              size="w-16 h-16 md:w-32 md:h-32 lg:w-40 lg:h-40"
+              size="w-20 h-20 md:w-32 md:h-32 lg:w-40 lg:h-40"
               ringColor="ring-bronze"
               ringWidth="ring-2"
               badgeColor="bg-bronze text-surface-1"
