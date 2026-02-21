@@ -10,6 +10,7 @@ export interface PlayerHistoryEntry {
   position: number
   points: number
   rebuys: number
+  isLastPlace: boolean
 }
 
 async function fetchPlayerHistory(playerId: string): Promise<PlayerHistoryEntry[]> {
@@ -20,8 +21,9 @@ async function fetchPlayerHistory(playerId: string): Promise<PlayerHistoryEntry[
     .order('event_nights(date)', { ascending: false })
 
   if (error) throw error
+  if (!data?.length) return []
 
-  return (data ?? []).map((r) => {
+  const entries = data.map((r) => {
     const en = r.event_nights as unknown as {
       id: string
       number: number
@@ -40,6 +42,29 @@ async function fetchPlayerHistory(playerId: string): Promise<PlayerHistoryEntry[
       rebuys: r.rebuys ?? 0,
     }
   })
+
+  // Get max position per event to detect last places
+  const eventIds = [...new Set(entries.map((e) => e.eventId))]
+  const { data: allResults } = await supabase
+    .from('event_results')
+    .select('event_id, position')
+    .in('event_id', eventIds)
+    .gt('position', 0)
+
+  const maxPositionByEvent = new Map<string, number>()
+  for (const r of allResults ?? []) {
+    const current = maxPositionByEvent.get(r.event_id) ?? 0
+    if (r.position > current) maxPositionByEvent.set(r.event_id, r.position)
+  }
+
+  // Filter: only notable results (final table = top 9, or last place), exclude position 0
+  return entries
+    .filter((e) => e.position > 0)
+    .map((e) => ({
+      ...e,
+      isLastPlace: e.position === (maxPositionByEvent.get(e.eventId) ?? 0),
+    }))
+    .filter((e) => e.position <= 9 || e.isLastPlace)
 }
 
 export function usePlayerHistory(playerId: string | undefined) {

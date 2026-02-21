@@ -2,7 +2,6 @@ import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStats, type StatsData, type StatsRow } from '../hooks/useStats'
-import { useSeasons } from '../hooks/useSeasons'
 import { formatPoints } from '../utils/formatPoints'
 import { GlassCard, CardSkeleton, PageHeader, PageContainer } from '../components/ui'
 import { staggerFast, tableRow } from '../lib/motion'
@@ -80,7 +79,7 @@ const STAT_CATEGORIES: StatCategory[] = [
     id: 'rebuys',
     label: 'Top Rebuys',
     shortLabel: 'Rebuys',
-    image: '/top%20rebuys.png',
+    image: '/rebuys.png',
     dataKey: 'topRebuys',
     valueLabel: 'Cantidad',
   },
@@ -88,16 +87,14 @@ const STAT_CATEGORIES: StatCategory[] = [
     id: 'bounties',
     label: 'Top Bounties',
     shortLabel: 'Bounties',
-    image: '/top%20bounties.png',
+    image: '/bounties.png',
     dataKey: 'topBounties',
     valueLabel: 'Cantidad',
   },
 ]
 
 export function EstadisticasPage() {
-  const [seasonId, setSeasonId] = useState<string | null>(null)
-  const { stats, loading, error } = useStats(seasonId)
-  const { seasons } = useSeasons()
+  const { stats, loading, error } = useStats()
   const [activeId, setActiveId] = useState('wins')
 
   const activeCategory = STAT_CATEGORIES.find((c) => c.id === activeId)!
@@ -132,63 +129,75 @@ export function EstadisticasPage() {
     )
   }
 
+  const leftCategories = STAT_CATEGORIES.slice(0, 5)
+  const rightCategories = STAT_CATEGORIES.slice(5)
+
   return (
     <PageContainer>
     <div className="space-y-6">
       <PageHeader title="Estadísticas" />
 
-      {/* Season selector */}
-      <div className="flex gap-2 overflow-x-auto pb-1 -mb-2">
-        <button
-          onClick={() => setSeasonId(null)}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-            seasonId === null
-              ? 'bg-accent text-white shadow-[0_0_12px_rgba(239,68,68,0.2)]'
-              : 'bg-glass border border-glass-border text-text-secondary hover:text-text-primary hover:border-accent/30'
-          }`}
-        >
-          Histórico
-        </button>
-        {seasons
-          .filter((s) => s.status === 'active' || s.status === 'finished')
-          .map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setSeasonId(s.id)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-              seasonId === s.id
-                ? 'bg-accent text-white shadow-[0_0_12px_rgba(239,68,68,0.2)]'
-                : 'bg-glass border border-glass-border text-text-secondary hover:text-text-primary hover:border-accent/30'
-            }`}
-          >
-            {s.name}
-          </button>
-        ))}
+      {/* Mobile: horizontal scroll selector */}
+      <div className="lg:hidden">
+        <StatCardSelector
+          categories={STAT_CATEGORIES}
+          activeId={activeId}
+          onSelect={setActiveId}
+        />
       </div>
 
-      <StatCardSelector
-        categories={STAT_CATEGORIES}
-        activeId={activeId}
-        onSelect={setActiveId}
-      />
+      {/* Desktop: vertical columns flanking the table */}
+      <div className="hidden lg:flex gap-4 items-start justify-center">
+        <StatColumn
+          categories={leftCategories}
+          activeId={activeId}
+          onSelect={setActiveId}
+        />
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeId}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.2 }}
-          className="max-w-2xl mx-auto"
-        >
-          <StatsTable
-            title={activeCategory.label}
-            data={activeData}
-            formatValue={activeCategory.formatValue}
-            valueLabel={activeCategory.valueLabel}
-          />
-        </motion.div>
-      </AnimatePresence>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeId}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="flex-1 max-w-2xl min-w-0"
+          >
+            <StatsTable
+              title={activeCategory.label}
+              data={activeData}
+              formatValue={activeCategory.formatValue}
+              valueLabel={activeCategory.valueLabel}
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        <StatColumn
+          categories={rightCategories}
+          activeId={activeId}
+          onSelect={setActiveId}
+        />
+      </div>
+
+      {/* Mobile: table below selector */}
+      <div className="lg:hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeId}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <StatsTable
+              title={activeCategory.label}
+              data={activeData}
+              formatValue={activeCategory.formatValue}
+              valueLabel={activeCategory.valueLabel}
+            />
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
     </PageContainer>
   )
@@ -261,6 +270,61 @@ function StatCardSelector({
       </div>
       {/* Mobile fade hint: more cards to the right */}
       <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-surface-1 to-transparent pointer-events-none md:hidden" />
+    </div>
+  )
+}
+
+function StatColumn({
+  categories,
+  activeId,
+  onSelect,
+}: {
+  categories: StatCategory[]
+  activeId: string
+  onSelect: (id: string) => void
+}) {
+  return (
+    <div className="flex flex-col gap-2 w-[130px] flex-shrink-0">
+      {categories.map((cat) => {
+        const isActive = cat.id === activeId
+        return (
+          <button
+            key={cat.id}
+            type="button"
+            onClick={() => onSelect(cat.id)}
+            className={`
+              relative flex flex-col items-center justify-center gap-1.5
+              p-3 rounded-xl cursor-pointer
+              border transition-all duration-200
+              ${isActive
+                ? 'border-accent/60 bg-accent-muted scale-105'
+                : 'border-glass-border bg-glass hover:bg-glass-hover hover:border-accent/30'
+              }
+            `}
+            style={isActive ? { boxShadow: '0 0 20px rgba(239, 68, 68, 0.15)' } : undefined}
+          >
+            {isActive && (
+              <motion.div
+                layoutId="stat-indicator"
+                className="absolute inset-0 rounded-xl border-2 border-accent/50"
+                transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+              />
+            )}
+            <img
+              src={cat.image}
+              alt={cat.shortLabel}
+              className={`w-12 h-12 object-contain transition-opacity duration-200 ${
+                isActive ? 'opacity-100' : 'opacity-60'
+              }`}
+            />
+            <span className={`relative z-10 text-xs font-semibold tracking-tight text-center leading-tight transition-colors ${
+              isActive ? 'text-text-primary' : 'text-text-tertiary'
+            }`}>
+              {cat.shortLabel}
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

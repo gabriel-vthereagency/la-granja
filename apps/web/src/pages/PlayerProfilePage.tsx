@@ -207,7 +207,7 @@ export function PlayerProfilePage() {
 
       {/* Historial de fechas */}
       <motion.div variants={fadeIn} initial="initial" animate="animate">
-        <h2 className="text-lg font-medium mb-3 text-text-secondary">Últimas fechas</h2>
+        <h2 className="text-lg font-medium mb-3 text-text-secondary">Resultados destacados</h2>
         {historyLoading ? (
           <GlassCard className="p-4">
             <div className="space-y-3">
@@ -261,9 +261,11 @@ export function PlayerProfilePage() {
                           entry.position === 1 ? 'text-gold' :
                           entry.position === 2 ? 'text-silver' :
                           entry.position === 3 ? 'text-bronze' :
+                          entry.isLastPlace ? 'text-accent-light' :
                           'text-text-primary'
                         }`}>
                           {entry.position === 1 ? '🥇' : entry.position === 2 ? '🥈' : entry.position === 3 ? '🥉' : entry.position}
+                          {entry.isLastPlace && ' 💀'}
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-center">
