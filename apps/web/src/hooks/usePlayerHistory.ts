@@ -60,7 +60,7 @@ async function fetchPlayerHistory(playerId: string): Promise<PlayerHistoryEntry[
     .filter((e) => e.position > 0)
     .map((e) => ({
       ...e,
-      isLastPlace: e.position === (maxPositionByEvent.get(e.eventId) ?? 0),
+      isLastPlace: e.position > 9 && e.position === (maxPositionByEvent.get(e.eventId) ?? 0),
     }))
     .filter((e) => e.position <= 9 || e.isLastPlace)
 }
