@@ -9,14 +9,13 @@ export interface PlayerHistoryEntry {
   date: Date
   position: number
   points: number
-  rebuys: number
   isLastPlace: boolean
 }
 
 async function fetchPlayerHistory(playerId: string): Promise<PlayerHistoryEntry[]> {
   const { data, error } = await supabase
     .from('event_results')
-    .select('position, points, rebuys, event_nights(id, number, date, season_id, seasons(name))')
+    .select('position, points, event_nights(id, number, date, season_id, seasons(name))')
     .eq('player_id', playerId)
     .order('event_nights(date)', { ascending: false })
 
@@ -39,7 +38,6 @@ async function fetchPlayerHistory(playerId: string): Promise<PlayerHistoryEntry[
       date: new Date(en.date),
       position: r.position,
       points: Number(r.points),
-      rebuys: r.rebuys ?? 0,
     }
   })
 

@@ -234,7 +234,6 @@ export function PlayerProfilePage() {
                     <th className="px-4 py-3 text-left text-xs font-semibold text-text-tertiary uppercase tracking-wider">Fecha</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-text-tertiary uppercase tracking-wider">Pos</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-text-tertiary uppercase tracking-wider">Pts</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-text-tertiary uppercase tracking-wider hidden sm:table-cell">R</th>
                     <th className="px-4 py-3 text-right text-xs font-semibold text-text-tertiary uppercase tracking-wider hidden sm:table-cell">Temporada</th>
                   </tr>
                 </thead>
@@ -272,13 +271,6 @@ export function PlayerProfilePage() {
                         <span className="text-sm font-medium text-success">
                           {formatPoints(entry.points)}
                         </span>
-                      </td>
-                      <td className="px-4 py-2.5 text-center hidden sm:table-cell">
-                        {entry.rebuys > 0 && (
-                          <span className="text-sm text-accent-light font-medium">
-                            {entry.rebuys}
-                          </span>
-                        )}
                       </td>
                       <td className="px-4 py-2.5 text-right hidden sm:table-cell">
                         <span className="text-xs text-text-tertiary">{entry.seasonName}</span>
