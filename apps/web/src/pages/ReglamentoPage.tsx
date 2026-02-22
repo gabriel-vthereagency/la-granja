@@ -6,6 +6,7 @@ import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 /* ─── Tab definitions ─────────────────────────────────────────────── */
 const tabs = [
   { id: 'calendario', label: 'Calendario', icon: '📅' },
+  { id: 'sede', label: 'Sede', icon: '🏠' },
   { id: 'regular', label: 'Torneo Regular', icon: '♠️' },
   { id: 'final', label: 'Final Seven', icon: '🏆' },
   { id: 'fraca', label: 'Fraca & SubZero', icon: '🔥' },
@@ -115,6 +116,7 @@ export function ReglamentoPage() {
             transition={{ duration: 0.2 }}
           >
             {activeTab === 'calendario' && <CalendarioTab />}
+            {activeTab === 'sede' && <SedeTab />}
             {activeTab === 'regular' && <RegularTab />}
             {activeTab === 'final' && <FinalSevenTab />}
             {activeTab === 'fraca' && <FracaTab />}
@@ -314,6 +316,13 @@ function CalendarioTab() {
         </p>
       </SectionCard>
 
+    </motion.div>
+  )
+}
+
+function SedeTab() {
+  return (
+    <motion.div className="space-y-4" variants={staggerContainer} initial="initial" animate="animate">
       <SectionCard>
         <SectionTitle>Sede TATAMI</SectionTitle>
         <Rule title="Inscripción">
