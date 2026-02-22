@@ -79,7 +79,7 @@ const STAT_CATEGORIES: StatCategory[] = [
     id: 'finals',
     label: 'Clasificaciones a Final',
     shortLabel: 'Finales',
-    image: '/top%20victorias.png',
+    image: '/final7.png',
     dataKey: 'topFinalClassifications',
     valueLabel: 'Finales',
   },
