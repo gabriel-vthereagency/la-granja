@@ -11,6 +11,8 @@ data/normalized/
 # Scripts y datos auxiliares
 data/update_mesa_final.sql
 data/Codigo viejo.txt
+data/*.docx
+data/~$*
 scripts/
 
 # Supabase temp files
