@@ -552,7 +552,7 @@ function SummerDesktopCard({ player }: { player: HofPlayerGroup }) {
       <img
         src="/champions.png"
         alt=""
-        className="absolute -bottom-8 -right-8 w-56 h-56 object-contain opacity-[0.10] rotate-12 pointer-events-none select-none"
+        className="absolute -top-10 -left-10 w-56 h-56 object-contain opacity-[0.10] -rotate-12 pointer-events-none select-none"
         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
       />
 
@@ -612,7 +612,7 @@ function SummerMobileCard({ player }: { player: HofPlayerGroup }) {
       <img
         src="/champions.png"
         alt=""
-        className="absolute -bottom-4 -right-4 w-28 h-28 object-contain opacity-[0.10] rotate-12 pointer-events-none select-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 object-contain opacity-[0.10] -rotate-12 pointer-events-none select-none"
         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
       />
 
