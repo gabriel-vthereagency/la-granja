@@ -10,7 +10,14 @@ data/normalized/
 
 # Scripts y datos auxiliares
 data/update_mesa_final.sql
+data/Codigo viejo.txt
 scripts/
+
+# Supabase temp files
+supabase/.temp/
+
+# Timer sound assets (local only)
+apps/timer/Sounds/
 
 # IDE / editor
 *.code-workspace
