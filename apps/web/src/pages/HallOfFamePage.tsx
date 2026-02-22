@@ -223,18 +223,11 @@ export function HallOfFamePage() {
 
       {/* Summer Champions */}
       {summerOrdered.length > 0 && (
-        <motion.section className="relative space-y-4" variants={fadeIn} initial="initial" animate="animate">
-          {/* Mushroom background — large, rotated, bleeds out */}
-          <img
-            src="/champions.png"
-            alt=""
-            className="absolute -top-16 -right-12 w-72 h-72 md:w-96 md:h-96 object-contain opacity-[0.07] rotate-12 pointer-events-none select-none"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-          />
-          <h2 className="text-xl font-medium text-accent-light relative z-10">Summer Champions</h2>
+        <motion.section className="space-y-4" variants={fadeIn} initial="initial" animate="animate">
+          <h2 className="text-xl font-medium text-accent-light">Summer Champions</h2>
           {/* Desktop */}
           <motion.div
-            className="hidden md:flex md:flex-wrap md:justify-center gap-4 relative z-10"
+            className="hidden md:flex md:flex-wrap md:justify-center gap-4"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
@@ -247,7 +240,7 @@ export function HallOfFamePage() {
           </motion.div>
           {/* Mobile */}
           <motion.div
-            className="md:hidden space-y-2 relative z-10"
+            className="md:hidden space-y-2"
             variants={staggerContainer}
             initial="initial"
             animate="animate"
@@ -444,7 +437,7 @@ function HofDesktopCard({ player, tier }: { player: HofPlayerGroup; tier: TierKe
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <img src={getMonoFallback(photoSrc)} alt="" className="h-[60%] object-contain opacity-40" />
+          <img src={getMonoFallback(photoSrc)} alt="" className="h-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300" />
         )}
       </div>
 
@@ -531,9 +524,7 @@ function HofMobileCard({ player, tier }: { player: HofPlayerGroup; tier: TierKey
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <img src={getMonoFallback(photoSrc)} alt="" className="h-full w-full object-contain opacity-40" />
-          </div>
+          <img src={getMonoFallback(photoSrc)} alt="" className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]" />
         )}
       </div>
     </Link>
@@ -557,6 +548,14 @@ function SummerDesktopCard({ player }: { player: HofPlayerGroup }) {
         style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(239,68,68,0.12) 0%, transparent 70%)' }}
       />
 
+      {/* Mushroom background — per card, behind player, rotated & clipped */}
+      <img
+        src="/champions.png"
+        alt=""
+        className="absolute -bottom-8 -right-8 w-56 h-56 object-contain opacity-[0.10] rotate-12 pointer-events-none select-none"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+
       {/* Titles count — top-right */}
       <div className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-glass/80 border border-glass-border text-sm font-bold text-accent-light">
         {player.titles}x
@@ -573,7 +572,7 @@ function SummerDesktopCard({ player }: { player: HofPlayerGroup }) {
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <img src={getMonoFallback(photoSrc)} alt="" className="h-[60%] object-contain opacity-40" />
+          <img src={getMonoFallback(photoSrc)} alt="" className="h-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300" />
         )}
       </div>
 
@@ -609,6 +608,14 @@ function SummerMobileCard({ player }: { player: HofPlayerGroup }) {
         style={{ background: 'radial-gradient(ellipse at 80% 50%, rgba(239,68,68,0.12) 0%, transparent 60%)' }}
       />
 
+      {/* Mushroom background — per card, behind player, rotated & clipped */}
+      <img
+        src="/champions.png"
+        alt=""
+        className="absolute -bottom-4 -right-4 w-28 h-28 object-contain opacity-[0.10] rotate-12 pointer-events-none select-none"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+
       {/* Left info */}
       <div className="absolute left-3 top-2.5 bottom-2.5 right-28 z-10 flex flex-col justify-between">
         <div>
@@ -635,9 +642,7 @@ function SummerMobileCard({ player }: { player: HofPlayerGroup }) {
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <img src={getMonoFallback(photoSrc)} alt="" className="h-full w-full object-contain opacity-40" />
-          </div>
+          <img src={getMonoFallback(photoSrc)} alt="" className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]" />
         )}
       </div>
     </Link>
@@ -698,7 +703,7 @@ function ChampionDesktopCard({
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <img src={getMonoFallback(photoSrc)} alt="" className="h-[60%] object-contain opacity-40" />
+          <img src={getMonoFallback(photoSrc)} alt="" className="h-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300" />
         )}
       </div>
 
@@ -775,9 +780,7 @@ function ChampionMobileCard({
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <img src={getMonoFallback(photoSrc)} alt="" className="h-full w-full object-contain opacity-40" />
-          </div>
+          <img src={getMonoFallback(photoSrc)} alt="" className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]" />
         )}
       </div>
     </Link>
