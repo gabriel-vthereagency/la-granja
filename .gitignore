@@ -4,7 +4,8 @@ apps/**/dist/
 apps/**/node_modules/
 .env
 .env.*
-data/BASE DE DATOS RAW.xlsx
+data/*.xlsx
+data/*.xls
 data/raw/
 data/normalized/
 

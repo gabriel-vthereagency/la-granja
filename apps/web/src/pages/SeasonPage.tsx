@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useSeason } from '../hooks/useSeason'
@@ -6,6 +7,12 @@ import { useStandings } from '../hooks/useStandings'
 import { StandingsTable } from '../components/StandingsTable'
 import { GlassCard, PageHeader, TableSkeleton, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
+import { getFinalForSeason } from '../data/finals'
+import type { FinalResult } from '../data/finals'
+
+const MEDAL_COLORS = ['text-gold', 'text-silver', 'text-bronze']
+const MEDAL_BG = ['bg-gold/10', 'bg-silver/10', 'bg-bronze/10']
+const MEDAL_EMOJI = ['🥇', '🥈', '🥉']
 
 export function SeasonPage() {
   const { seasonId } = useParams()
@@ -57,6 +64,7 @@ export function SeasonPage() {
 
   const regularChampion = champions.regular ?? standings[0]?.player ?? null
   const isSummer = season.type === 'summer'
+  const finalData = getFinalForSeason(season.type, season.year)
 
   return (
     <PageContainer>
@@ -68,7 +76,7 @@ export function SeasonPage() {
         backLabel="Volver al historial"
       />
 
-      {/* Header de campeones */}
+      {/* Champions section with photos */}
       {season.status === 'finished' && (
         <motion.div variants={fadeIn} initial="initial" animate="animate">
           <GlassCard as="section" className="p-6">
@@ -89,11 +97,23 @@ export function SeasonPage() {
         </motion.div>
       )}
 
-      {/* Tabla de posiciones */}
+      {/* Final Seven / Summer Cup Results table */}
+      {finalData && (
+        <motion.section variants={fadeIn} initial="initial" animate="animate">
+          <GlassCard className="p-6">
+            <h2 className="text-lg font-medium mb-4">
+              {isSummer ? 'Summer Cup — Mesa Final' : 'Final Seven'}
+            </h2>
+            <FinalResultsTable results={finalData.results} />
+          </GlassCard>
+        </motion.section>
+      )}
+
+      {/* Standings table */}
       <motion.section variants={fadeIn} initial="initial" animate="animate">
         <GlassCard className="p-6">
           <h2 className="text-lg font-medium mb-4">
-            {season.status === 'finished' ? 'Tabla Final' : 'Tabla de Posiciones'}
+            {season.status === 'finished' ? 'Tabla Final — Torneo Regular' : 'Tabla de Posiciones'}
           </h2>
           {standings.length > 0 ? (
             <StandingsTable
@@ -109,7 +129,7 @@ export function SeasonPage() {
         </GlassCard>
       </motion.section>
 
-      {/* Lista de fechas */}
+      {/* Event dates list */}
       {events.length > 0 && (
         <motion.section variants={fadeIn} initial="initial" animate="animate">
           <GlassCard className="p-6">
@@ -149,6 +169,80 @@ export function SeasonPage() {
   )
 }
 
+/* ─── Final Results Table ─── */
+
+function FinalResultsTable({ results }: { results: FinalResult[] }) {
+  return (
+    <motion.div
+      className="space-y-1.5"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
+      {results.map((r) => (
+        <FinalResultRow key={r.position} result={r} />
+      ))}
+    </motion.div>
+  )
+}
+
+function FinalResultRow({ result }: { result: FinalResult }) {
+  const [photoError, setPhotoError] = useState(false)
+  const isMedal = result.position <= 3
+  const medalIdx = result.position - 1
+  const photoSrc = `/Players/${result.playerKey}.png`
+
+  return (
+    <motion.div
+      variants={staggerItem}
+      className={`flex items-center gap-3 rounded-xl px-4 py-2.5 transition ${
+        isMedal
+          ? `${MEDAL_BG[medalIdx]} border border-white/[0.06]`
+          : 'bg-surface-2/30 hover:bg-surface-2/50'
+      }`}
+    >
+      {/* Position */}
+      <div className={`w-8 text-center font-bold text-lg ${isMedal ? MEDAL_COLORS[medalIdx] : 'text-text-tertiary'}`}>
+        {isMedal ? MEDAL_EMOJI[medalIdx] : result.position}
+      </div>
+
+      {/* Player photo */}
+      <div className="relative w-10 h-10 rounded-full overflow-hidden bg-surface-3/50 shrink-0">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt={result.name}
+            loading="lazy"
+            className="w-full h-full object-cover object-top"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-lg opacity-40">
+            🐵
+          </div>
+        )}
+        {result.position === 1 && (
+          <div className="absolute inset-0 rounded-full ring-2 ring-gold/40" />
+        )}
+      </div>
+
+      {/* Name */}
+      <span className={`font-medium flex-1 ${isMedal ? 'text-text-primary' : 'text-text-secondary'}`}>
+        {result.name}
+      </span>
+
+      {/* Position number for medal rows */}
+      {isMedal && (
+        <span className={`text-sm font-semibold ${MEDAL_COLORS[medalIdx]}`}>
+          #{result.position}
+        </span>
+      )}
+    </motion.div>
+  )
+}
+
+/* ─── Champion Card with photo ─── */
+
 function ChampionCard({
   title,
   player,
@@ -158,12 +252,37 @@ function ChampionCard({
   player: { name: string; id: string } | null
   highlight: boolean
 }) {
+  const [photoError, setPhotoError] = useState(false)
   const bgClass = highlight ? 'bg-gold/10' : ''
   const titleClass = highlight ? 'text-gold' : 'text-text-tertiary'
   const nameClass = highlight ? 'font-bold text-gold' : 'font-medium'
+  const photoSrc = player ? `/Players/${player.id}.png` : ''
 
   return (
-    <div className={`${bgClass} rounded-lg p-3`}>
+    <div className={`${bgClass} rounded-lg p-4 flex flex-col items-center gap-2`}>
+      {/* Photo */}
+      {player && (
+        <Link to={`/jugadores/${player.id}`} className="group">
+          <div className="relative w-16 h-16 rounded-full overflow-hidden bg-surface-3/50">
+            {!photoError ? (
+              <img
+                src={photoSrc}
+                alt={player.name}
+                loading="lazy"
+                className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
+                onError={() => setPhotoError(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl opacity-40">
+                🐵
+              </div>
+            )}
+            {highlight && (
+              <div className="absolute inset-0 rounded-full ring-2 ring-gold/40" />
+            )}
+          </div>
+        </Link>
+      )}
       <div className={`text-sm ${titleClass}`}>{title}</div>
       {player ? (
         <Link

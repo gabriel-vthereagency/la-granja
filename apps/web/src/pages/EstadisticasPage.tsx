@@ -75,6 +75,14 @@ const STAT_CATEGORIES: StatCategory[] = [
     dataKey: 'topBubbles',
     valueLabel: 'Cantidad',
   },
+  {
+    id: 'finals',
+    label: 'Clasificaciones a Final',
+    shortLabel: 'Finales',
+    image: '/top%20victorias.png',
+    dataKey: 'topFinalClassifications',
+    valueLabel: 'Finales',
+  },
 ]
 
 export function EstadisticasPage() {
@@ -90,7 +98,7 @@ export function EstadisticasPage() {
       <div className="space-y-6">
         <PageHeader title="Estadísticas" />
         <div className="grid grid-cols-3 md:grid-cols-7 gap-2 md:gap-3">
-          {Array.from({ length: 7 }).map((_, i) => (
+          {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-[140px] rounded-xl bg-surface-3/60 animate-pulse" />
           ))}
         </div>

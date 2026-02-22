@@ -1,5 +1,6 @@
 import useSWR from 'swr'
 import { supabase } from '../lib/supabase'
+import { getTopFinalClassifications } from '../data/finals'
 
 export interface StatsRow {
   rank: number
@@ -16,6 +17,7 @@ export interface StatsData {
   topEffectiveness: StatsRow[]
   topWinRate: StatsRow[]
   topPresences: StatsRow[]
+  topFinalClassifications: StatsRow[]
 }
 
 const TOP_LIMIT = 10
@@ -93,6 +95,12 @@ async function fetchStats(): Promise<StatsData> {
         value: row.value,
       }))
 
+    const topFinalClassifications = getTopFinalClassifications().map((row, index) => ({
+      rank: index + 1,
+      player: row.player,
+      value: row.count,
+    }))
+
     return {
       topPodiums,
       topWins,
@@ -101,6 +109,7 @@ async function fetchStats(): Promise<StatsData> {
       topEffectiveness,
       topWinRate,
       topPresences,
+      topFinalClassifications,
     }
   }
 
@@ -145,6 +154,7 @@ async function fetchStats(): Promise<StatsData> {
       topEffectiveness: [],
       topWinRate: [],
       topPresences: [],
+      topFinalClassifications: [],
     }
   }
 
@@ -244,6 +254,12 @@ async function fetchStats(): Promise<StatsData> {
       value: row.value,
     }))
 
+  const topFinalClassifications = getTopFinalClassifications().map((row, index) => ({
+    rank: index + 1,
+    player: row.player,
+    value: row.count,
+  }))
+
   return {
     topPodiums,
     topWins,
@@ -252,6 +268,7 @@ async function fetchStats(): Promise<StatsData> {
     topEffectiveness,
     topWinRate,
     topPresences,
+    topFinalClassifications,
   }
 }
 
@@ -263,6 +280,7 @@ const EMPTY_STATS: StatsData = {
   topEffectiveness: [],
   topWinRate: [],
   topPresences: [],
+  topFinalClassifications: [],
 }
 
 export function useStats() {

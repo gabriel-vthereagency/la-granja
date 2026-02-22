@@ -96,6 +96,8 @@ export function HallOfFamePage() {
   const fracas = champions.filter((c) => c.tournamentType === 'fraca')
 
   const hofGroups = groupByTitles(finalSevens)
+  const summerGroups = groupByTitles(summerChampions)
+  const summerOrdered = [...summerGroups.tri, ...summerGroups.bi, ...summerGroups.rest]
 
   return (
     <PageContainer>
@@ -211,7 +213,7 @@ export function HallOfFamePage() {
       )}
 
       {/* Summer Champions */}
-      {summerChampions.length > 0 && (
+      {summerOrdered.length > 0 && (
         <motion.section className="space-y-4" variants={fadeIn} initial="initial" animate="animate">
           <h2 className="text-xl font-medium text-blue-400">Summer Champions</h2>
           {/* Desktop */}
@@ -221,14 +223,18 @@ export function HallOfFamePage() {
             initial="initial"
             animate="animate"
           >
-            {summerChampions
-              .slice()
-              .sort((a, b) => b.year - a.year)
-              .map((entry) => (
-                <motion.div key={entry.id} variants={staggerItem}>
-                  <ChampionDesktopCard entry={entry} accentColor="blue" />
-                </motion.div>
-              ))}
+            {summerOrdered.map((player) => (
+              <motion.div key={player.playerId} variants={staggerItem}>
+                {player.titles > 1 ? (
+                  <SummerMultiDesktopCard player={player} />
+                ) : (
+                  <ChampionDesktopCard
+                    entry={{ year: player.maxYear, playerName: player.playerName, playerId: player.playerId, seasonName: player.seasons[0] ?? null }}
+                    accentColor="blue"
+                  />
+                )}
+              </motion.div>
+            ))}
           </motion.div>
           {/* Mobile */}
           <motion.div
@@ -237,14 +243,18 @@ export function HallOfFamePage() {
             initial="initial"
             animate="animate"
           >
-            {summerChampions
-              .slice()
-              .sort((a, b) => b.year - a.year)
-              .map((entry) => (
-                <motion.div key={entry.id} variants={staggerItem}>
-                  <ChampionMobileCard entry={entry} accentColor="blue" />
-                </motion.div>
-              ))}
+            {summerOrdered.map((player) => (
+              <motion.div key={player.playerId} variants={staggerItem}>
+                {player.titles > 1 ? (
+                  <SummerMultiMobileCard player={player} />
+                ) : (
+                  <ChampionMobileCard
+                    entry={{ year: player.maxYear, playerName: player.playerName, playerId: player.playerId, seasonName: player.seasons[0] ?? null }}
+                    accentColor="blue"
+                  />
+                )}
+              </motion.div>
+            ))}
           </motion.div>
         </motion.section>
       )}
@@ -509,6 +519,110 @@ function HofMobileCard({ player, tier }: { player: HofPlayerGroup; tier: TierKey
       />
 
       {/* Player photo — right side */}
+      <div className="absolute right-0 top-0 bottom-0 w-28 overflow-hidden">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt=""
+            loading="lazy"
+            className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl opacity-30">🐵</span>
+          </div>
+        )}
+      </div>
+    </Link>
+  )
+}
+
+/* ─── Summer Multi-champion Cards ─── */
+
+function SummerMultiDesktopCard({ player }: { player: HofPlayerGroup }) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = `/Players/${player.playerId}.png`
+
+  return (
+    <Link
+      to={`/jugadores/${player.playerId}`}
+      className="group relative block rounded-xl overflow-hidden border border-glass-border hover:border-blue-500/40 transition-all duration-300 h-[380px] w-[280px]"
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-500/20 via-surface-2/80 to-surface-1" />
+      <div
+        className="absolute inset-0"
+        style={{ background: 'radial-gradient(ellipse at 50% 30%, rgba(59,130,246,0.15) 0%, transparent 70%)' }}
+      />
+
+      {/* Titles count */}
+      <div className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-glass/80 border border-glass-border text-sm font-bold text-blue-400">
+        {player.titles}x
+      </div>
+
+      {/* Photo */}
+      <div className="absolute inset-0 flex items-end justify-center pb-[100px]">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt={player.playerName}
+            loading="lazy"
+            className="h-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
+          <span className="text-8xl opacity-30 mb-8">🐵</span>
+        )}
+      </div>
+
+      {/* Info panel */}
+      <div className="absolute bottom-3 left-3 right-3 rounded-xl bg-white/[0.06] backdrop-blur-xl border border-white/[0.1] p-3 pt-4 text-center space-y-1.5 overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.12) 0%, transparent 60%)' }}
+        />
+        <div className="relative inline-flex items-center justify-center px-5 py-1 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.15] to-white/[0.08] border border-blue-500/20 shadow-[0_0_20px_rgba(255,255,255,0.06)]">
+          <h3 className="text-lg font-bold text-text-primary tracking-tight">{player.playerName}</h3>
+        </div>
+        <p className="relative text-text-tertiary text-xs">
+          {player.seasons.join(', ')}
+        </p>
+      </div>
+    </Link>
+  )
+}
+
+function SummerMultiMobileCard({ player }: { player: HofPlayerGroup }) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = `/Players/${player.playerId}.png`
+
+  return (
+    <Link
+      to={`/jugadores/${player.playerId}`}
+      className="group relative block rounded-xl overflow-hidden border border-glass-border hover:border-blue-500/40 transition-all duration-300 h-[110px]"
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-500/20 via-surface-2/80 to-surface-1" />
+      <div
+        className="absolute inset-0"
+        style={{ background: 'radial-gradient(ellipse at 80% 50%, rgba(59,130,246,0.15) 0%, transparent 60%)' }}
+      />
+
+      {/* Left info */}
+      <div className="absolute left-3 top-2.5 bottom-2.5 right-28 z-10 flex flex-col justify-between">
+        <div>
+          <div className="inline-flex self-start items-center px-3 py-0.5 rounded-full bg-gradient-to-r from-white/[0.08] via-white/[0.15] to-white/[0.08] border border-blue-500/20">
+            <span className="font-bold text-text-primary text-sm truncate">{player.playerName}</span>
+          </div>
+          <div className="text-[11px] font-semibold tracking-widest mt-1 ml-1 text-blue-400">
+            {player.titles}x SUMMER
+          </div>
+        </div>
+        <div className="text-text-tertiary text-[11px] truncate">
+          {player.seasons.join(', ')}
+        </div>
+      </div>
+
+      {/* Photo */}
       <div className="absolute right-0 top-0 bottom-0 w-28 overflow-hidden">
         {!photoError ? (
           <img
