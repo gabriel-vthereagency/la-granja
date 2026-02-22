@@ -5,6 +5,15 @@ import { useHallOfFame } from '../hooks/useHallOfFame'
 import { GlassCard, PageHeader, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem, staggerFast, tableRow } from '../lib/motion'
 
+const MONO_PHOTOS = ['/Players/mono1.png', '/Players/mono2.png', '/Players/mono-3.png']
+
+/** Pick a deterministic mono photo based on a string key */
+function getMonoFallback(key: string): string {
+  let hash = 0
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) | 0
+  return MONO_PHOTOS[Math.abs(hash) % MONO_PHOTOS.length] ?? MONO_PHOTOS[0]!
+}
+
 function getBadgeSrc(titles: number): string {
   if (titles >= 3) return '/trifoh.png'
   if (titles === 2) return '/bihof.png'
@@ -435,7 +444,7 @@ function HofDesktopCard({ player, tier }: { player: HofPlayerGroup; tier: TierKe
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <span className="text-8xl opacity-30 mb-8">🐵</span>
+          <img src={getMonoFallback(photoSrc)} alt="" className="h-[60%] object-contain opacity-40" />
         )}
       </div>
 
@@ -523,7 +532,7 @@ function HofMobileCard({ player, tier }: { player: HofPlayerGroup; tier: TierKey
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl opacity-30">🐵</span>
+            <img src={getMonoFallback(photoSrc)} alt="" className="h-full w-full object-contain opacity-40" />
           </div>
         )}
       </div>
@@ -564,7 +573,7 @@ function SummerDesktopCard({ player }: { player: HofPlayerGroup }) {
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <span className="text-8xl opacity-30 mb-8">🐵</span>
+          <img src={getMonoFallback(photoSrc)} alt="" className="h-[60%] object-contain opacity-40" />
         )}
       </div>
 
@@ -627,7 +636,7 @@ function SummerMobileCard({ player }: { player: HofPlayerGroup }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl opacity-30">🐵</span>
+            <img src={getMonoFallback(photoSrc)} alt="" className="h-full w-full object-contain opacity-40" />
           </div>
         )}
       </div>
@@ -689,7 +698,7 @@ function ChampionDesktopCard({
             onError={() => setPhotoError(true)}
           />
         ) : (
-          <span className="text-8xl opacity-30 mb-8">🐵</span>
+          <img src={getMonoFallback(photoSrc)} alt="" className="h-[60%] object-contain opacity-40" />
         )}
       </div>
 
@@ -767,7 +776,7 @@ function ChampionMobileCard({
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl opacity-30">🐵</span>
+            <img src={getMonoFallback(photoSrc)} alt="" className="h-full w-full object-contain opacity-40" />
           </div>
         )}
       </div>
