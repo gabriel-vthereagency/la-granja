@@ -75,10 +75,57 @@ export function HistoriaPage() {
 
       {/* ── Layer 2: Text Content ── */}
       <div className="relative z-10 mx-auto max-w-3xl px-4 pt-28 pb-16 sm:px-6">
-        <motion.div className="space-y-8" variants={fadeIn} initial="initial" animate="animate">
-          <PageHeader title="Nuestra Historia" />
+        <motion.div className="space-y-4" variants={fadeIn} initial="initial" animate="animate">
+          {/* Gallery Cards — solid background, above text */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <Link
+              to="/historia/fotos"
+              className="group relative rounded-xl overflow-hidden border border-glass-border hover:border-accent/40 transition-all duration-300 h-28 sm:h-36 bg-surface-2"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-surface-3 to-surface-2" />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(239,68,68,0.08) 0%, transparent 60%)' }}
+              />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2.5">
+                <div className="w-11 h-11 rounded-xl bg-accent/15 border border-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+                    <rect x="3" y="3" width="16" height="16" rx="3" stroke="var(--color-accent)" strokeWidth="1.5" />
+                    <circle cx="8.5" cy="9" r="2" stroke="var(--color-accent)" strokeWidth="1.5" />
+                    <path d="M3 15l4-4 3 3 4-5 5 6" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-text-primary">Fotos</p>
+                  <p className="text-[11px] text-text-tertiary">40 fotos</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link
+              to="/historia/videos"
+              className="group relative rounded-xl overflow-hidden border border-glass-border hover:border-accent/40 transition-all duration-300 h-28 sm:h-36 bg-surface-2"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-surface-3 to-surface-2" />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(239,68,68,0.08) 0%, transparent 60%)' }}
+              />
+              <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2.5">
+                <div className="w-11 h-11 rounded-xl bg-accent/15 border border-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
+                    <rect x="2" y="4" width="18" height="14" rx="3" stroke="var(--color-accent)" strokeWidth="1.5" />
+                    <path d="M9 9l5 3-5 3V9z" fill="var(--color-accent)" />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-text-primary">Videos</p>
+                  <p className="text-[11px] text-text-tertiary">4 videos</p>
+                </div>
+              </div>
+            </Link>
+          </div>
 
           <GlassCard as="section" className="p-6 sm:p-8 md:p-10">
+            <PageHeader title="Nuestra Historia" />
             {/* Part 1 — Always visible */}
             <div className="space-y-4 text-text-secondary leading-relaxed">
               {TEXT_PART_1.map((paragraph, i) => (
@@ -156,58 +203,6 @@ export function HistoriaPage() {
               </motion.svg>
             </button>
           </GlassCard>
-
-          {/* Gallery Cards */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <Link
-              to="/historia/fotos"
-              className="group relative rounded-xl overflow-hidden border border-glass-border hover:border-accent/40 transition-all duration-300 h-32 sm:h-40"
-            >
-              {/* Background photo collage */}
-              <div className="absolute inset-0 grid grid-cols-3 gap-0.5 opacity-30 group-hover:opacity-50 transition-opacity duration-500">
-                {[1, 5, 12, 8, 20, 30].map((id) => (
-                  <img key={id} src={`/Historia/${id}.jpg`} alt="" className="w-full h-full object-cover" loading="lazy" />
-                ))}
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-surface-1 via-surface-1/80 to-surface-1/40" />
-              <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2">
-                <div className="w-12 h-12 rounded-xl bg-accent/15 border border-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <rect x="3" y="3" width="16" height="16" rx="3" stroke="var(--color-accent)" strokeWidth="1.5" />
-                    <circle cx="8.5" cy="9" r="2" stroke="var(--color-accent)" strokeWidth="1.5" />
-                    <path d="M3 15l4-4 3 3 4-5 5 6" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-semibold text-text-primary">Fotos</p>
-                  <p className="text-[11px] text-text-tertiary">40 fotos</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link
-              to="/historia/videos"
-              className="group relative rounded-xl overflow-hidden border border-glass-border hover:border-accent/40 transition-all duration-300 h-32 sm:h-40"
-            >
-              {/* Background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-accent/8 via-surface-2 to-surface-1" />
-              <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500"
-                style={{ background: 'radial-gradient(ellipse at 60% 40%, rgba(239,68,68,0.3) 0%, transparent 60%)' }}
-              />
-              <div className="relative z-10 h-full flex flex-col items-center justify-center gap-2">
-                <div className="w-12 h-12 rounded-xl bg-accent/15 border border-accent/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                    <rect x="2" y="4" width="18" height="14" rx="3" stroke="var(--color-accent)" strokeWidth="1.5" />
-                    <path d="M9 9l5 3-5 3V9z" fill="var(--color-accent)" />
-                  </svg>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-semibold text-text-primary">Videos</p>
-                  <p className="text-[11px] text-text-tertiary">4 videos</p>
-                </div>
-              </div>
-            </Link>
-          </div>
         </motion.div>
       </div>
     </section>

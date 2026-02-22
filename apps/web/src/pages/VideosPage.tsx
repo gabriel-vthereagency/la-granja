@@ -6,10 +6,10 @@ import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 /* ─── Video Data ─── */
 
 const VIDEOS = [
-  { id: 'ijpsrh', title: 'La Granja Highlights #1' },
-  { id: 'qv53l9', title: 'La Granja Highlights #2' },
-  { id: '9nzlo3', title: 'La Granja Highlights #3' },
-  { id: 'nnitgw', title: 'La Granja Highlights #4' },
+  { id: 'nnitgw', title: 'Final Seven — Clausura 2025' },
+  { id: '9nzlo3', title: 'Final Seven — Apertura 2025' },
+  { id: 'ijpsrh', title: 'Final Seven — Clausura 2024' },
+  { id: 'qv53l9', title: 'Final Seven — Apertura 2024' },
 ]
 
 /* ─── Main Component ─── */
