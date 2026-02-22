@@ -66,6 +66,20 @@ export function SeasonPage() {
   const isSummer = season.type === 'summer'
   const finalData = getFinalForSeason(season.type, season.year)
 
+  // For Final Seven champion: use DB data, fallback to static data position 1
+  const finalSevenChampion = champions.finalSeven ?? (
+    !isSummer && finalData?.results[0]
+      ? { name: finalData.results[0].name, id: finalData.results[0].playerKey }
+      : null
+  )
+
+  // For Summer champion: use DB data, fallback to static data position 1
+  const summerChampion = champions.summerChampion ?? (
+    isSummer && finalData?.results[0]
+      ? { name: finalData.results[0].name, id: finalData.results[0].playerKey }
+      : null
+  )
+
   return (
     <PageContainer>
     <div className="space-y-6">
@@ -76,28 +90,42 @@ export function SeasonPage() {
         backLabel="Volver al historial"
       />
 
-      {/* Champions section with photos */}
+      {/* Champions section — only Final Seven + Regular (no Fraca) */}
       {season.status === 'finished' && (
         <motion.div variants={fadeIn} initial="initial" animate="animate">
-          <GlassCard as="section" className="p-6">
-            <h2 className="text-lg font-medium mb-4">Campeones</h2>
-            {isSummer ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-                <ChampionCard title="Temporada Regular" player={regularChampion} highlight={false} />
-                <ChampionCard title="Summer Champion" player={champions.summerChampion} highlight />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <ChampionCard title="Final Seven" player={champions.finalSeven} highlight />
-                <ChampionCard title="Temporada Regular" player={regularChampion} highlight={false} />
-                <ChampionCard title="Fraca" player={champions.fraca} highlight={false} />
-              </div>
-            )}
-          </GlassCard>
+          {isSummer ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <HeroChampionCard
+                title="Temporada Regular"
+                player={regularChampion}
+                accentColor="accent"
+              />
+              <HeroChampionCard
+                title="Summer Champion"
+                player={summerChampion}
+                accentColor="gold"
+                showLaurels
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <HeroChampionCard
+                title="Final Seven"
+                player={finalSevenChampion}
+                accentColor="gold"
+                showLaurels
+              />
+              <HeroChampionCard
+                title="Temporada Regular"
+                player={regularChampion}
+                accentColor="accent"
+              />
+            </div>
+          )}
         </motion.div>
       )}
 
-      {/* Final Seven / Summer Cup Results table */}
+      {/* Final Seven / Summer Cup Results table (no photos) */}
       {finalData && (
         <motion.section variants={fadeIn} initial="initial" animate="animate">
           <GlassCard className="p-6">
@@ -169,7 +197,94 @@ export function SeasonPage() {
   )
 }
 
-/* ─── Final Results Table ─── */
+/* ─── Hero Champion Card (big, with photo + optional laurels) ─── */
+
+function HeroChampionCard({
+  title,
+  player,
+  accentColor,
+  showLaurels = false,
+}: {
+  title: string
+  player: { name: string; id: string } | null
+  accentColor: 'gold' | 'accent'
+  showLaurels?: boolean
+}) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = player ? `/Players/${player.id}.png` : ''
+
+  const colors = {
+    gold: {
+      gradient: 'from-yellow-500/15 via-surface-2/80 to-surface-1',
+      ring: 'ring-gold/40',
+      titleColor: 'text-gold',
+      nameColor: 'text-gold font-bold',
+      border: 'border-yellow-500/20 hover:border-yellow-500/40',
+    },
+    accent: {
+      gradient: 'from-accent/10 via-surface-2/80 to-surface-1',
+      ring: 'ring-accent/30',
+      titleColor: 'text-accent-light',
+      nameColor: 'text-text-primary font-semibold',
+      border: 'border-glass-border hover:border-accent/30',
+    },
+  }[accentColor]
+
+  return (
+    <div className={`relative rounded-xl overflow-hidden border ${colors.border} transition-all duration-300`}>
+      <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient}`} />
+      <div className="relative flex flex-col items-center gap-3 p-6 py-8">
+        {/* Laurels behind photo */}
+        {showLaurels && (
+          <img
+            src="/laureles.png"
+            alt=""
+            className="absolute top-3 left-1/2 -translate-x-1/2 w-36 h-36 object-contain opacity-15 pointer-events-none"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
+        )}
+
+        {/* Photo */}
+        {player && (
+          <Link to={`/jugadores/${player.id}`} className="group relative z-10">
+            <div className={`relative w-24 h-24 rounded-full overflow-hidden bg-surface-3/50 ring-2 ${colors.ring}`}>
+              {!photoError ? (
+                <img
+                  src={photoSrc}
+                  alt={player.name}
+                  loading="lazy"
+                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
+                  onError={() => setPhotoError(true)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-3xl opacity-40">
+                  🐵
+                </div>
+              )}
+            </div>
+          </Link>
+        )}
+
+        {/* Title */}
+        <div className={`text-sm font-medium ${colors.titleColor} relative z-10`}>{title}</div>
+
+        {/* Name */}
+        {player ? (
+          <Link
+            to={`/jugadores/${player.id}`}
+            className={`text-xl ${colors.nameColor} hover:underline relative z-10`}
+          >
+            {player.name}
+          </Link>
+        ) : (
+          <div className="text-text-tertiary text-lg relative z-10">-</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Final Results Table (no photos) ─── */
 
 function FinalResultsTable({ results }: { results: FinalResult[] }) {
   return (
@@ -187,10 +302,8 @@ function FinalResultsTable({ results }: { results: FinalResult[] }) {
 }
 
 function FinalResultRow({ result }: { result: FinalResult }) {
-  const [photoError, setPhotoError] = useState(false)
   const isMedal = result.position <= 3
   const medalIdx = result.position - 1
-  const photoSrc = `/Players/${result.playerKey}.png`
 
   return (
     <motion.div
@@ -206,26 +319,6 @@ function FinalResultRow({ result }: { result: FinalResult }) {
         {isMedal ? MEDAL_EMOJI[medalIdx] : result.position}
       </div>
 
-      {/* Player photo */}
-      <div className="relative w-10 h-10 rounded-full overflow-hidden bg-surface-3/50 shrink-0">
-        {!photoError ? (
-          <img
-            src={photoSrc}
-            alt={result.name}
-            loading="lazy"
-            className="w-full h-full object-cover object-top"
-            onError={() => setPhotoError(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-lg opacity-40">
-            🐵
-          </div>
-        )}
-        {result.position === 1 && (
-          <div className="absolute inset-0 rounded-full ring-2 ring-gold/40" />
-        )}
-      </div>
-
       {/* Name */}
       <span className={`font-medium flex-1 ${isMedal ? 'text-text-primary' : 'text-text-secondary'}`}>
         {result.name}
@@ -238,63 +331,6 @@ function FinalResultRow({ result }: { result: FinalResult }) {
         </span>
       )}
     </motion.div>
-  )
-}
-
-/* ─── Champion Card with photo ─── */
-
-function ChampionCard({
-  title,
-  player,
-  highlight,
-}: {
-  title: string
-  player: { name: string; id: string } | null
-  highlight: boolean
-}) {
-  const [photoError, setPhotoError] = useState(false)
-  const bgClass = highlight ? 'bg-gold/10' : ''
-  const titleClass = highlight ? 'text-gold' : 'text-text-tertiary'
-  const nameClass = highlight ? 'font-bold text-gold' : 'font-medium'
-  const photoSrc = player ? `/Players/${player.id}.png` : ''
-
-  return (
-    <div className={`${bgClass} rounded-lg p-4 flex flex-col items-center gap-2`}>
-      {/* Photo */}
-      {player && (
-        <Link to={`/jugadores/${player.id}`} className="group">
-          <div className="relative w-16 h-16 rounded-full overflow-hidden bg-surface-3/50">
-            {!photoError ? (
-              <img
-                src={photoSrc}
-                alt={player.name}
-                loading="lazy"
-                className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
-                onError={() => setPhotoError(true)}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl opacity-40">
-                🐵
-              </div>
-            )}
-            {highlight && (
-              <div className="absolute inset-0 rounded-full ring-2 ring-gold/40" />
-            )}
-          </div>
-        </Link>
-      )}
-      <div className={`text-sm ${titleClass}`}>{title}</div>
-      {player ? (
-        <Link
-          to={`/jugadores/${player.id}`}
-          className={`${nameClass} hover:underline`}
-        >
-          {player.name}
-        </Link>
-      ) : (
-        <div className="text-text-tertiary">-</div>
-      )}
-    </div>
   )
 }
 

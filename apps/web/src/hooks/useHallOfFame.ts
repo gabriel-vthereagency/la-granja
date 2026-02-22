@@ -1,5 +1,6 @@
 import useSWR from 'swr'
 import { supabase } from '../lib/supabase'
+import { SUMMER_DATA } from '../data/finals'
 
 export interface HofEntry {
   id: string
@@ -48,6 +49,27 @@ async function fetchHallOfFame(): Promise<HallOfFameData> {
         playerId: row.player_id,
         playerAvatarUrl: player?.avatar_url ?? null,
         seasonName: season?.name ?? null,
+      })
+    }
+  }
+
+  // Supplement Summer champions from static data if missing from DB
+  const dbSummerYears = new Set(
+    champions
+      .filter((c) => c.tournamentType === 'summer_cup' || c.tournamentType === 'summer')
+      .map((c) => c.year)
+  )
+  for (const summer of SUMMER_DATA) {
+    const winner = summer.results[0]
+    if (!dbSummerYears.has(summer.year) && winner) {
+      champions.push({
+        id: `summer-static-${summer.year}`,
+        tournamentType: 'summer',
+        year: summer.year,
+        playerName: winner.name,
+        playerId: winner.playerKey,
+        playerAvatarUrl: null,
+        seasonName: `Summer Cup ${summer.year}`,
       })
     }
   }
