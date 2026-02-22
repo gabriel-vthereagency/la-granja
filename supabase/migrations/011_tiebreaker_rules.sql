@@ -9,7 +9,11 @@
 -- 7. Fewest last places
 -- 8. Best position in the last event played
 
-CREATE OR REPLACE VIEW season_standings AS
+-- Must DROP first because we're adding a new column (last_event_position)
+-- before the existing position column, which CREATE OR REPLACE doesn't allow
+DROP VIEW IF EXISTS season_standings;
+
+CREATE VIEW season_standings AS
 SELECT
   pss.*,
   COALESCE(pslp.last_places, 0) as last_places,
