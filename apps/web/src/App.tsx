@@ -10,6 +10,8 @@ import { HallOfFamePage } from './pages/HallOfFamePage'
 import { EstadisticasPage } from './pages/EstadisticasPage'
 import { ReglamentoPage } from './pages/ReglamentoPage'
 import { HistoriaPage } from './pages/HistoriaPage'
+import { FotosPage } from './pages/FotosPage'
+import { VideosPage } from './pages/VideosPage'
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
           <Route path="/estadisticas" element={<EstadisticasPage />} />
           <Route path="/reglamento" element={<ReglamentoPage />} />
           <Route path="/historia" element={<HistoriaPage />} />
+          <Route path="/historia/fotos" element={<FotosPage />} />
+          <Route path="/historia/videos" element={<VideosPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
