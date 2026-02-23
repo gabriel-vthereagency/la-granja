@@ -120,7 +120,7 @@ export async function fetchPlayerProfile(playerId: string): Promise<PlayerProfil
       if (r.position === 5) fifths++
       if (r.is_bubble === true || (r.is_bubble == null && r.position === 6)) bubbles++
       // Hybrid: use explicit value if set, otherwise calculate from position
-      if (r.is_final_table ?? (r.position !== null && r.position <= 9)) finalTables++
+      if (r.is_final_table ?? (r.position !== null && r.position > 0 && r.position <= 9)) finalTables++
 
       const totalInEvent = playersPerEvent.get(r.event_id) ?? 0
       if (r.position === totalInEvent && totalInEvent > 1) lastPlaces++
