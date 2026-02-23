@@ -71,7 +71,7 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
     year: 2018, type: 'apertura',
     results: [
       { position: 1, name: 'Mich', playerKey: 'mich' },
-      { position: 2, name: 'Gonzalo', playerKey: 'gonzalo' },
+      { position: 2, name: 'Gonzalo', playerKey: 'gonza' },
       { position: 3, name: 'Araña', playerKey: 'arana' },
       { position: 4, name: 'Ari', playerKey: 'ari' },
       { position: 5, name: 'Simón', playerKey: 'simon' },
@@ -85,7 +85,7 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
     results: [
       { position: 1, name: 'Ari', playerKey: 'ari' },
       { position: 2, name: 'Gabo', playerKey: 'gabo' },
-      { position: 3, name: 'Gonzalo', playerKey: 'gonzalo' },
+      { position: 3, name: 'Gonzalo', playerKey: 'gonza' },
       { position: 4, name: 'Lucas', playerKey: 'lucas' },
       { position: 5, name: 'Martín', playerKey: 'martin' },
       { position: 6, name: 'Sergio', playerKey: 'sergio' },
@@ -101,7 +101,7 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
       { position: 3, name: 'Lucas', playerKey: 'lucas' },
       { position: 4, name: 'Ari', playerKey: 'ari' },
       { position: 5, name: 'Alan', playerKey: 'alan' },
-      { position: 6, name: 'Gonzalo', playerKey: 'gonzalo' },
+      { position: 6, name: 'Gonzalo', playerKey: 'gonza' },
       { position: 7, name: 'Rasta', playerKey: 'rasta' },
       { position: 8, name: 'Charly', playerKey: 'charly' },
     ],
@@ -177,7 +177,7 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
       { position: 1, name: 'Araña', playerKey: 'arana' },
       { position: 2, name: 'Toti', playerKey: 'toti' },
       { position: 3, name: 'Oscar', playerKey: 'oscar' },
-      { position: 4, name: 'Gonzalo', playerKey: 'gonzalo' },
+      { position: 4, name: 'Gonzalo', playerKey: 'gonza' },
       { position: 5, name: 'Halcón', playerKey: 'halcon' },
       { position: 6, name: 'Ova', playerKey: 'ova' },
       { position: 7, name: 'Guille', playerKey: 'guille' },
@@ -233,7 +233,7 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
       { position: 5, name: 'Ari', playerKey: 'ari' },
       { position: 6, name: 'Woody', playerKey: 'woody' },
       { position: 7, name: 'Yeti', playerKey: 'yeti' },
-      { position: 8, name: 'Gonza', playerKey: 'gonzalo' },
+      { position: 8, name: 'Gonza', playerKey: 'gonza' },
     ],
   },
   {
@@ -303,7 +303,7 @@ export const SUMMER_DATA: FinalData[] = [
   {
     year: 2020, type: 'summer',
     results: [
-      { position: 1, name: 'Gonzalo', playerKey: 'gonzalo' },
+      { position: 1, name: 'Gonzalo', playerKey: 'gonza' },
       { position: 2, name: 'Mich', playerKey: 'mich' },
       { position: 3, name: 'Ari', playerKey: 'ari' },
       { position: 4, name: 'Rasta', playerKey: 'rasta' },
@@ -323,7 +323,7 @@ export const SUMMER_DATA: FinalData[] = [
   {
     year: 2022, type: 'summer',
     results: [
-      { position: 1, name: 'Gonzalo', playerKey: 'gonzalo' },
+      { position: 1, name: 'Gonzalo', playerKey: 'gonza' },
       { position: 2, name: 'Mich', playerKey: 'mich' },
       { position: 3, name: 'Hernán', playerKey: 'hernan' },
       { position: 4, name: 'Halcón', playerKey: 'halcon' },
