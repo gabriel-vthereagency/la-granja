@@ -1,5 +1,5 @@
 import type { LiveTournamentState } from '@lagranja/types'
-import { TOURNAMENT_CONFIG, VENUE_PERCENTAGE, F7_PERCENTAGE } from '@lagranja/types'
+import { TOURNAMENT_CONFIG } from '@lagranja/types'
 
 export interface TournamentStats {
   playersRegistered: number
@@ -8,7 +8,7 @@ export interface TournamentStats {
   totalRebuys: number
   totalChips: number
   averageStack: number
-  prizePool: number // Pozo NETO (después de descontar 10% sede + 10% F7)
+  prizePool: number // 100% de entradas + recompras
 }
 
 export function calculateTournamentStats(
@@ -22,12 +22,8 @@ export function calculateTournamentStats(
   // Fichas totales = (entradas + recompras) * stack inicial
   const totalChips = (playersRegistered + totalRebuys) * TOURNAMENT_CONFIG.startingStack
 
-  // Pozo bruto = (entradas + recompras) * valor de la caja
-  const grossPool = (playersRegistered + totalRebuys) * state.buyInAmount
-
-  // Pozo neto = bruto - 10% sede - 10% F7 (lo que se reparte a jugadores)
-  const deductions = (grossPool * (VENUE_PERCENTAGE + F7_PERCENTAGE)) / 100
-  const prizePool = grossPool - deductions
+  // Pozo = 100% de (entradas + recompras) * valor de la caja
+  const prizePool = (playersRegistered + totalRebuys) * state.buyInAmount
 
   return {
     playersRegistered,

@@ -63,11 +63,6 @@ export const ATTENDANCE_POINTS = 0.5
 // Penalización por último lugar
 export const LAST_PLACE_PENALTY = -0.5
 
-// 10% va a la sede (no se distribuye a jugadores)
-export const VENUE_PERCENTAGE = 10
-
-// 10% va al fondo de la final offline (F7)
-export const F7_PERCENTAGE = 10
 
 export const BLIND_STRUCTURE: BlindLevel[] = [
   { index: 0, type: 'level', sb: 2, bb: 4, ante: 0, durationSec: 720 },
