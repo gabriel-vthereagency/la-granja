@@ -10,7 +10,7 @@ export interface ActiveSeasonWithEvents extends Season {
 const TOTAL_EVENTS_BY_TYPE: Record<string, number> = {
   apertura: 20,
   clausura: 20,
-  summer: 9,
+  summer: 10,
 }
 
 async function fetchSeasons(): Promise<{ seasons: Season[]; activeSeason: ActiveSeasonWithEvents | null }> {
