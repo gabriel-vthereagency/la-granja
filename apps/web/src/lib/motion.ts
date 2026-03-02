@@ -154,9 +154,10 @@ export const heroScale: Variants = {
 
 export const floatSlow: Variants = {
   animate: {
-    y: [0, -22, 0],
-    rotate: [0, 6, -6, 0],
-    transition: { duration: 6, repeat: Infinity, ease: 'easeInOut' },
+    y: [0, -35, 0],
+    rotate: [0, 12, -12, 0],
+    scale: [1, 1.1, 1],
+    transition: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
   },
 }
 
