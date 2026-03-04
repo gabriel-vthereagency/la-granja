@@ -360,6 +360,16 @@ export const SUMMER_DATA: FinalData[] = [
       { position: 5, name: 'Gabo', playerKey: 'gabo' },
     ],
   },
+  {
+    year: 2026, type: 'summer',
+    results: [
+      { position: 1, name: 'Tincho B', playerKey: 'tinchob' },
+      { position: 2, name: 'Tala', playerKey: 'tala' },
+      { position: 3, name: 'Gianni', playerKey: 'gianni' },
+      { position: 4, name: 'Galle', playerKey: 'galle' },
+      { position: 5, name: 'Teto', playerKey: 'teto' },
+    ],
+  },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────
