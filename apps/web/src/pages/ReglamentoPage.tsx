@@ -396,21 +396,21 @@ function RegularTab() {
       <SectionCard>
         <SectionTitle>Horarios y Dinámica</SectionTitle>
         <Rule title="Inicio del torneo">
-          <p>Hora de inicio: <strong className="text-text-primary">20:10 hs</strong></p>
+          <p>Hora de inicio: <strong className="text-text-primary">19:50 hs</strong></p>
           <ul className="list-disc list-inside mt-2 space-y-1.5">
-            <li>Jugadores presentes a las 20:10 reciben <strong className="text-success">+100 fichas</strong> de bonificación</li>
+            <li>Jugadores presentes a las 19:50 reciben <strong className="text-success">+100 fichas</strong> de bonificación</li>
             <li>Quienes lleguen después: penalización de <strong className="text-accent-light">5x la ciega grande</strong> vigente</li>
             <li>Se entiende que son torneos SIN registro tardío; la quita equivale a las ciegas que le habrían quemado hasta su llegada</li>
           </ul>
         </Rule>
         <Callout>
-          Se considera PRESENTE a quien esté físicamente dentro de TATAMI, en el 2do piso, a las 20:10. No cuenta estar en la puerta, estacionando, subiendo por el ascensor o "avisando que ya llega".
+          Se considera PRESENTE a quien esté físicamente dentro de TATAMI, en el 2do piso, a las 19:50. No cuenta estar en la puerta, estacionando, subiendo por el ascensor o "avisando que ya llega".
         </Callout>
         <Rule title="Sorteo y arranque">
           <ul className="list-disc list-inside space-y-1.5">
-            <li><strong className="text-text-primary">20:10</strong> — Límite para las 100 fichas extras</li>
-            <li><strong className="text-text-primary">20:10 – 20:15</strong> — Sorteo entre los presentes. Los que llegan en ese intervalo ingresan fuera de sorteo</li>
-            <li><strong className="text-text-primary">20:15</strong> — Comienza el reloj y la quita de ciegas a los ingresantes tardíos</li>
+            <li><strong className="text-text-primary">19:50</strong> — Límite para las 100 fichas extras</li>
+            <li><strong className="text-text-primary">19:50 – 19:55</strong> — Sorteo entre los presentes. Los que llegan en ese intervalo ingresan fuera de sorteo</li>
+            <li><strong className="text-text-primary">19:55</strong> — Comienza el reloj y la quita de ciegas a los ingresantes tardíos</li>
           </ul>
         </Rule>
         <Rule title="Break">
