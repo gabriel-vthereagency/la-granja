@@ -21,7 +21,7 @@ const DEFAULT_STATE: LiveTournamentState = {
   championName: null,
   players: [],
   totalRebuys: 0,
-  buyInAmount: 10000,
+  buyInAmount: 12000,
   tournamentName: null,
   seasonName: null,
   eventNumber: null,
@@ -180,7 +180,7 @@ export function useTournamentControl() {
                 current_level: 0,
                 time_remaining: BLIND_STRUCTURE[0]?.durationSec ?? 720,
                 is_paused: true,
-                buy_in_amount: 10000,
+                buy_in_amount: 12000,
               })
               .select()
               .single()
@@ -223,7 +223,7 @@ export function useTournamentControl() {
             championName: stateData.champion_name,
             players,
             totalRebuys,
-            buyInAmount: stateData.buy_in_amount ?? 10000,
+            buyInAmount: stateData.buy_in_amount ?? 12000,
             tournamentName: stateData.tournament_name ?? null,
             seasonName: stateData.season_name ?? null,
             eventNumber: stateData.event_number ?? null,

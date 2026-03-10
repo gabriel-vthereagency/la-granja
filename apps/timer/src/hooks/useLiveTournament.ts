@@ -15,7 +15,7 @@ const DEFAULT_STATE: LiveTournamentState = {
   championName: null,
   players: [],
   totalRebuys: 0,
-  buyInAmount: 10000,
+  buyInAmount: 12000,
   tournamentName: null,
   seasonName: null,
   eventNumber: null,
@@ -78,7 +78,7 @@ export function useLiveTournament() {
             championName: stateData.champion_name ?? null,
             players,
             totalRebuys,
-            buyInAmount: stateData.buy_in_amount ?? 10000,
+            buyInAmount: stateData.buy_in_amount ?? 12000,
             tournamentName: stateData.tournament_name ?? null,
             seasonName: stateData.season_name ?? null,
             eventNumber: stateData.event_number ?? null,
@@ -167,7 +167,7 @@ export function useLiveTournament() {
               currentLevel: stateData.current_level as number,
               timeRemaining: levelData?.durationSec ?? 720,
               isPaused: false, // Auto-play al cambiar nivel
-              buyInAmount: (stateData.buy_in_amount as number) ?? 10000,
+              buyInAmount: (stateData.buy_in_amount as number) ?? 12000,
             }))
             return
           }
