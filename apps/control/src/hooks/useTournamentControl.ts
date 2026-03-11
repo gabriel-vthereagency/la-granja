@@ -36,6 +36,11 @@ export function useTournamentControl() {
   const [error, setError] = useState<string | null>(null)
   const stateIdRef = useRef<string | null>(null)
   const resolvingEventRef = useRef(false)
+  // Ref siempre actualizado con el estado más reciente de jugadores.
+  // Permite calcular posiciones correctas en eliminaciones rápidas consecutivas
+  // sin depender del closure de state (que puede estar desactualizado).
+  const playersRef = useRef<LiveTournamentState['players']>(DEFAULT_STATE.players)
+  playersRef.current = state.players
 
   // Control NO maneja countdown - solo Timer lo hace
   // Control solo muestra el estado y envía comandos
@@ -367,7 +372,19 @@ export function useTournamentControl() {
     return 'normal'
   }, [])
 
-  const eliminatePlayer = useCallback(async (id: string, position: number) => {
+  const eliminatePlayer = useCallback(async (id: string) => {
+    // Calcular posición desde el ref (siempre actual), no desde el closure de state.
+    // Esto evita que dos eliminaciones rápidas consecutivas obtengan la misma posición
+    // cuando el estado React aún no procesó la primera actualización.
+    const currentActivePlayers = playersRef.current.filter((p) => p.status === 'active')
+    const position = currentActivePlayers.length
+
+    // Actualizar el ref de forma optimista para que la próxima eliminación
+    // rápida vea la posición correcta antes de que React actualice el estado.
+    playersRef.current = playersRef.current.map((p) =>
+      p.id === id ? { ...p, status: 'eliminated' as const, position } : p
+    )
+
     try {
       const { error: updateError } = await supabase
         .from('live_tournament_players')
@@ -551,15 +568,31 @@ export function useTournamentControl() {
 
       // Crear registros de resultados
       const totalPlayers = state.players.length
+
+      // Detectar si múltiples jugadores comparten la posición máxima (tie para último).
+      // Esto puede ocurrir si se eliminaron simultáneamente en la misma mano.
+      // En ese caso, no se penaliza a ninguno: reciben puntos de presencial (0.5)
+      // en lugar de la penalización de último (-0.5).
+      const maxPosition = playersWithPositions.length > 0
+        ? Math.max(...playersWithPositions.map((p) => p.position ?? 0))
+        : 0
+      const playersAtLastPosition = playersWithPositions.filter(
+        (p) => p.position === maxPosition
+      ).length
+      const hasDuplicateLastPlace = playersAtLastPosition > 1
+
       const results = playersWithPositions.map((player) => {
         const position = player.position ?? 0
         const prizeInfo = prizeBreakdown.prizes.find((p) => p.position === position)
+        // Si hay empate en el último lugar, usar totalPlayers+1 como referencia
+        // para que ninguno reciba la penalización (quedan como "presencial").
+        const effectiveTotalPlayers = hasDuplicateLastPlace ? totalPlayers + 1 : totalPlayers
         return {
           event_id: eventId,
           player_id: player.playerId,
           position,
           rebuys: player.hasRebuy ? 1 : 0,
-          points: getPointsForPosition(position, totalPlayers),
+          points: getPointsForPosition(position, effectiveTotalPlayers),
           prize: prizeInfo?.amount ?? 0,
         }
       })

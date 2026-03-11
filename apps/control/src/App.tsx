@@ -114,9 +114,7 @@ export default function App() {
     const player = state.players.find((p) => p.id === id)
     if (!player) return
 
-    const activePlayers = state.players.filter((p) => p.status === 'active')
-    const position = activePlayers.length
-    eliminatePlayer(id, position)
+    eliminatePlayer(id)
     pushUndo({ type: 'eliminate', playerId: id, playerName: player.name })
   }, [state.players, eliminatePlayer, pushUndo])
 
