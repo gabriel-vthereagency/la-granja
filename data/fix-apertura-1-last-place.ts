@@ -1,18 +1,24 @@
 /**
- * Fix: dos jugadores con último lugar en Apertura 2026 Fecha 1
+ * Fix: puntos incorrectos en Apertura 2026 Fecha 1
  *
- * Este script corrige los puntos de dos jugadores que quedaron con -0.5
- * (penalización de último lugar) cuando debería haber sido solo uno.
+ * Qué pasó:
+ *   - 26 jugadores registrados
+ *   - Orfa fue eliminada (pos=26, primera en salir)
+ *   - Santi fue removido de la lista ("no vino") → state.players.length bajó a 25
+ *   - Hernan fue eliminado (pos=25, porque había 25 activos después de remover a Santi)
+ *   - Al guardar: totalPlayers=25 (incorrecto, debería ser 26 = maxPosition)
+ *     → Orfa (pos=26): 26 >= 10 pero 26 < 25 es falso → 0 pts (debería ser -0.5)
+ *     → Hernan (pos=25): 25 === 25 → -0.5 pts (debería ser +0.5 presencial)
+ *
+ * Corrección:
+ *   - Orfa: 0 → -0.5 (era la verdadera última)
+ *   - Hernan: -0.5 → +0.5 (era presencial, no último)
  *
  * Cómo correr:
- *   node --env-file=apps/web/.env.local -e "import('./data/fix-apertura-1-last-place.ts')"
- *   # o con tsx:
- *   SUPABASE_SERVICE_ROLE_KEY=xxx VITE_SUPABASE_URL=xxx tsx data/fix-apertura-1-last-place.ts
+ *   SUPABASE_SERVICE_ROLE_KEY=xxx tsx data/fix-apertura-1-last-place.ts
  *
- * Requiere:
- *   - VITE_SUPABASE_URL  (en tu .env.local del proyecto)
- *   - SUPABASE_SERVICE_ROLE_KEY  (en tu dashboard de Supabase > Settings > API)
- *     Si no lo tenés, usá VITE_SUPABASE_ANON_KEY (puede fallar por RLS)
+ * La SUPABASE_SERVICE_ROLE_KEY está en tu dashboard de Supabase → Settings → API
+ * También necesitás VITE_SUPABASE_URL (en tu .env.local del proyecto)
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -23,13 +29,14 @@ const supabaseKey =
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('Faltan variables de entorno: VITE_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY')
+  console.error('Ejemplo: VITE_SUPABASE_URL=https://xxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=yyy tsx data/fix-apertura-1-last-place.ts')
   process.exit(1)
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-async function fixDuplicateLastPlace() {
-  console.log('Buscando Apertura 2026, Fecha 1...')
+async function fixApertura1LastPlace() {
+  console.log('Buscando Apertura 2026, Fecha 1...\n')
 
   // 1. Buscar la temporada apertura 2026
   const { data: season, error: seasonErr } = await supabase
@@ -45,10 +52,10 @@ async function fixDuplicateLastPlace() {
   }
   console.log(`Temporada: ${season.name} (${season.id})`)
 
-  // 2. Buscar la fecha 1 de esa temporada
+  // 2. Buscar la fecha 1
   const { data: event, error: eventErr } = await supabase
     .from('event_nights')
-    .select('id, number, date')
+    .select('id, number, date, players_count')
     .eq('season_id', season.id)
     .eq('number', 1)
     .single()
@@ -57,9 +64,9 @@ async function fixDuplicateLastPlace() {
     console.error('No se encontró la Fecha 1:', eventErr?.message)
     process.exit(1)
   }
-  console.log(`Fecha 1: ${event.date} (${event.id})`)
+  console.log(`Fecha 1: ${event.date} (${event.id})\n`)
 
-  // 3. Buscar los resultados de esa fecha
+  // 3. Traer todos los resultados ordenados por posición
   const { data: results, error: resultsErr } = await supabase
     .from('event_results')
     .select('id, player_id, position, points')
@@ -71,45 +78,61 @@ async function fixDuplicateLastPlace() {
     process.exit(1)
   }
 
-  console.log(`\nResultados de la fecha (${results.length} jugadores):`)
+  console.log(`Resultados actuales (${results.length} jugadores):`)
   for (const r of results) {
-    console.log(`  pos=${r.position}  pts=${r.points}  player=${r.player_id}`)
+    const flag = r.points < 0 ? ' ← penalizado ❌' : r.position === Math.max(...results.map(x => x.position)) ? ' ← debería ser último' : ''
+    console.log(`  pos=${String(r.position).padStart(2)}  pts=${String(r.points).padStart(5)}  ${r.player_id}${flag}`)
   }
 
-  // 4. Encontrar la posición máxima
+  // 4. Calcular la posición máxima (el verdadero "último lugar")
   const maxPosition = Math.max(...results.map((r) => r.position ?? 0))
-  const atLastPlace = results.filter((r) => r.position === maxPosition)
+  const atMaxPosition = results.filter((r) => r.position === maxPosition)
+  const wronglyPenalized = results.filter((r) => r.points < 0 && r.position !== maxPosition)
+  const shouldBePenalized = atMaxPosition.filter((r) => r.points >= 0)
 
-  if (atLastPlace.length <= 1) {
-    console.log(`\nNo hay duplicado en el último lugar (pos=${maxPosition}). Nada que corregir.`)
+  console.log(`\nPosición máxima (verdadero último lugar): ${maxPosition}`)
+
+  if (wronglyPenalized.length === 0 && shouldBePenalized.length === 0) {
+    console.log('Los puntos ya están correctos. Nada que corregir.')
     return
   }
 
-  console.log(`\nProblema encontrado: ${atLastPlace.length} jugadores en posición ${maxPosition}:`)
-  for (const r of atLastPlace) {
-    console.log(`  player=${r.player_id}  puntos actuales=${r.points}`)
+  console.log('\nCorrecciones necesarias:')
+  for (const r of wronglyPenalized) {
+    console.log(`  ${r.player_id}: ${r.points} → +0.5 (era presencial, no último)`)
+  }
+  for (const r of shouldBePenalized) {
+    console.log(`  ${r.player_id}: ${r.points} → -0.5 (era el verdadero último, pos=${maxPosition})`)
   }
 
-  // 5. Corregir: cambiar de -0.5 a 0.5 (presencial en lugar de último)
-  const idsToFix = atLastPlace.map((r) => r.id)
-  const { error: updateErr } = await supabase
-    .from('event_results')
-    .update({ points: 0.5 })
-    .in('id', idsToFix)
+  // 5. Aplicar correcciones
+  let anyError = false
 
-  if (updateErr) {
-    console.error('\nError al actualizar (¿falta SUPABASE_SERVICE_ROLE_KEY?):', updateErr.message)
+  if (wronglyPenalized.length > 0) {
+    const { error: e } = await supabase
+      .from('event_results')
+      .update({ points: 0.5 })
+      .in('id', wronglyPenalized.map((r) => r.id))
+    if (e) { console.error('Error corrigiendo presencial:', e.message); anyError = true }
+  }
+
+  if (shouldBePenalized.length > 0) {
+    const { error: e } = await supabase
+      .from('event_results')
+      .update({ points: -0.5 })
+      .in('id', shouldBePenalized.map((r) => r.id))
+    if (e) { console.error('Error corrigiendo último lugar:', e.message); anyError = true }
+  }
+
+  if (anyError) {
+    console.error('\n¿Falta SUPABASE_SERVICE_ROLE_KEY? La anon key no puede hacer updates por RLS.')
     process.exit(1)
   }
 
-  console.log(`\nCorregido! ${atLastPlace.length} jugadores actualizados: -0.5 → 0.5 pts`)
-  console.log('Los jugadores afectados:')
-  for (const r of atLastPlace) {
-    console.log(`  ${r.player_id}: ${r.points} → 0.5 pts`)
-  }
+  console.log('\n✓ Correcciones aplicadas exitosamente.')
 }
 
-fixDuplicateLastPlace().catch((err) => {
+fixApertura1LastPlace().catch((err) => {
   console.error('Error inesperado:', err)
   process.exit(1)
 })
