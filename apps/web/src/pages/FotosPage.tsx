@@ -3,10 +3,44 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, type PanInfo } from 'framer-motion'
 import { PageHeader, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
+import { supabase } from '../lib/supabase'
 
 /* ─── Photo Data ─── */
 
-const PHOTO_IDS = Array.from({ length: 43 }, (_, i) => i + 1)
+const STATIC_COUNT = 43
+const BUCKET = 'historia'
+
+type Photo = { src: string; key: string }
+
+function getStaticPhotos(): Photo[] {
+  return Array.from({ length: STATIC_COUNT }, (_, i) => ({
+    key: `static-${i + 1}`,
+    src: `/Historia/${i + 1}.jpg`,
+  }))
+}
+
+async function compressImage(file: File, maxWidth = 1200, quality = 0.82): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, maxWidth / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      const ctx = canvas.getContext('2d')
+      if (!ctx) { reject(new Error('No canvas context')); return }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob)
+        else reject(new Error('Compression failed'))
+      }, 'image/jpeg', quality)
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
 
 const SWIPE_THRESHOLD = 50
 const DRAG_CONSTRAINT = 300
@@ -14,18 +48,69 @@ const DRAG_CONSTRAINT = 300
 /* ─── Main Component ─── */
 
 export function FotosPage() {
+  const [photos, setPhotos] = useState<Photo[]>(getStaticPhotos())
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Load dynamic photos from Supabase Storage
+  useEffect(() => {
+    supabase.storage
+      .from(BUCKET)
+      .list('', { limit: 500, sortBy: { column: 'created_at', order: 'desc' } })
+      .then(({ data, error }) => {
+        if (error || !data) return
+        const dynamic: Photo[] = data
+          .filter((f) => f.name !== '.emptyFolderPlaceholder')
+          .map((f) => ({
+            key: `supabase-${f.name}`,
+            src: supabase.storage.from(BUCKET).getPublicUrl(f.name).data.publicUrl,
+          }))
+        if (dynamic.length > 0) {
+          setPhotos([...getStaticPhotos(), ...dynamic])
+        }
+      })
+  }, [])
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 15 * 1024 * 1024) {
+      setUploadError('La foto no puede superar 15MB.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+    setUploading(true)
+    setUploadError(null)
+    try {
+      const blob = await compressImage(file)
+      const filename = `${crypto.randomUUID()}.jpg`
+      const { error } = await supabase.storage.from(BUCKET).upload(filename, blob, {
+        contentType: 'image/jpeg',
+        cacheControl: '3600',
+      })
+      if (error) throw error
+      const src = supabase.storage.from(BUCKET).getPublicUrl(filename).data.publicUrl
+      setPhotos((prev) => [...prev, { key: `supabase-${filename}`, src }])
+    } catch {
+      setUploadError('No se pudo subir la foto. Intentá de nuevo.')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   const openLightbox = (index: number) => setLightboxIndex(index)
   const closeLightbox = () => setLightboxIndex(null)
 
   const goNext = useCallback(() => {
-    setLightboxIndex((prev) => (prev !== null ? (prev + 1) % PHOTO_IDS.length : null))
-  }, [])
+    setLightboxIndex((prev) => (prev !== null ? (prev + 1) % photos.length : null))
+  }, [photos.length])
 
   const goPrev = useCallback(() => {
-    setLightboxIndex((prev) => (prev !== null ? (prev - 1 + PHOTO_IDS.length) % PHOTO_IDS.length : null))
-  }, [])
+    setLightboxIndex((prev) => (prev !== null ? (prev - 1 + photos.length) % photos.length : null))
+  }, [photos.length])
 
   useEffect(() => {
     if (lightboxIndex === null) return
@@ -38,7 +123,6 @@ export function FotosPage() {
     return () => window.removeEventListener('keydown', handler)
   }, [lightboxIndex, goNext, goPrev])
 
-  // Lock body scroll when lightbox is open
   useEffect(() => {
     if (lightboxIndex !== null) {
       document.body.style.overflow = 'hidden'
@@ -64,10 +148,42 @@ export function FotosPage() {
           <PageHeader title="Galería de Fotos" />
         </div>
 
-        {/* Photo count */}
-        <p className="text-text-tertiary text-sm -mt-4">
-          {PHOTO_IDS.length} fotos de La Granja
-        </p>
+        {/* Count + Upload */}
+        <div className="flex items-center justify-between -mt-4">
+          <p className="text-text-tertiary text-sm">{photos.length} fotos de La Granja</p>
+          <div className="flex flex-col items-end gap-1">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20 hover:bg-accent/20 hover:border-accent/40 text-accent-light text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {uploading ? (
+                <>
+                  <svg className="animate-spin" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="2" strokeDasharray="8 8" />
+                  </svg>
+                  Subiendo...
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M7 1v8M4 4l3-3 3 3M2 10v2a1 1 0 001 1h8a1 1 0 001-1v-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Subir foto
+                </>
+              )}
+            </button>
+            {uploadError && <p className="text-xs text-red-400">{uploadError}</p>}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleUpload}
+          />
+        </div>
 
         {/* Photo Grid */}
         <motion.div
@@ -76,25 +192,22 @@ export function FotosPage() {
           initial="initial"
           animate="animate"
         >
-          {PHOTO_IDS.map((id, index) => (
+          {photos.map((photo, index) => (
             <motion.button
-              key={id}
+              key={photo.key}
               variants={staggerItem}
               type="button"
               onClick={() => openLightbox(index)}
               className="group relative aspect-[4/3] rounded-xl overflow-hidden border border-glass-border hover:border-accent/50 transition-all duration-300 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
-              {/* Image */}
               <img
-                src={`/Historia/${id}.jpg`}
-                alt={`La Granja #${id}`}
+                src={photo.src}
+                alt="La Granja"
                 loading="lazy"
                 decoding="async"
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300" />
-              {/* Hover icon */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 flex items-center justify-center">
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
@@ -102,10 +215,6 @@ export function FotosPage() {
                   </svg>
                 </div>
               </div>
-              {/* Number tag */}
-              <span className="absolute bottom-2 right-2 text-[10px] font-mono text-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                #{id}
-              </span>
             </motion.button>
           ))}
         </motion.div>
@@ -115,6 +224,7 @@ export function FotosPage() {
       <AnimatePresence>
         {lightboxIndex !== null && (
           <Lightbox
+            photos={photos}
             index={lightboxIndex}
             onClose={closeLightbox}
             onNext={goNext}
@@ -129,11 +239,13 @@ export function FotosPage() {
 /* ─── Lightbox Component ─── */
 
 function Lightbox({
+  photos,
   index,
   onClose,
   onNext,
   onPrev,
 }: {
+  photos: Photo[]
   index: number
   onClose: () => void
   onNext: () => void
@@ -156,7 +268,7 @@ function Lightbox({
     }
   }
 
-  const photoId = PHOTO_IDS[currentIndex] ?? 1
+  const photo = photos[currentIndex]
 
   const slideVariants = {
     enter: (dir: number) => ({ x: dir > 0 ? 400 : -400, opacity: 0, scale: 0.9 }),
@@ -183,15 +295,13 @@ function Lightbox({
 
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-4 sm:px-6">
-        {/* Counter */}
         <div className="flex items-center gap-3">
           <span className="text-sm font-mono text-white/70">
             <span className="text-white font-semibold">{currentIndex + 1}</span>
             <span className="text-white/40 mx-1">/</span>
-            <span className="text-white/40">{PHOTO_IDS.length}</span>
+            <span className="text-white/40">{photos.length}</span>
           </span>
         </div>
-        {/* Close */}
         <button
           type="button"
           onClick={onClose}
@@ -240,13 +350,15 @@ function Lightbox({
             onDragEnd={handleDragEnd}
             className="absolute max-w-full max-h-full cursor-grab active:cursor-grabbing"
           >
-            <img
-              src={`/Historia/${photoId}.jpg`}
-              alt={`La Granja #${photoId}`}
-              className="max-h-[80vh] max-w-[90vw] sm:max-w-[80vw] object-contain rounded-lg select-none pointer-events-none"
-              style={{ filter: 'drop-shadow(0 25px 60px rgba(0,0,0,0.6))' }}
-              draggable={false}
-            />
+            {photo && (
+              <img
+                src={photo.src}
+                alt="La Granja"
+                className="max-h-[80vh] max-w-[90vw] sm:max-w-[80vw] object-contain rounded-lg select-none pointer-events-none"
+                style={{ filter: 'drop-shadow(0 25px 60px rgba(0,0,0,0.6))' }}
+                draggable={false}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
