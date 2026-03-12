@@ -6,7 +6,7 @@ import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 
 /* ─── Photo Data ─── */
 
-const PHOTO_IDS = Array.from({ length: 40 }, (_, i) => i + 1)
+const PHOTO_IDS = Array.from({ length: 43 }, (_, i) => i + 1)
 
 const SWIPE_THRESHOLD = 50
 const DRAG_CONSTRAINT = 300

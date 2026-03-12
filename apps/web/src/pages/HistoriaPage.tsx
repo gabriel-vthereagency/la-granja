@@ -25,7 +25,7 @@ const TEXT_PART_2 = [
 
 /* ─── Photo Cloud Config ─── */
 
-const PHOTO_COUNT = 40
+const PHOTO_COUNT = 43
 const PHOTO_IDS = Array.from({ length: PHOTO_COUNT }, (_, i) => i + 1)
 
 const GRID_COLS = 12
@@ -96,7 +96,7 @@ export function HistoriaPage() {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-semibold text-text-primary">Fotos</p>
-                  <p className="text-[11px] text-text-tertiary">40 fotos</p>
+                  <p className="text-[11px] text-text-tertiary">43 fotos</p>
                 </div>
               </div>
             </Link>
