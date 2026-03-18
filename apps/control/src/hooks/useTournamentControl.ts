@@ -36,6 +36,11 @@ export function useTournamentControl() {
   const [error, setError] = useState<string | null>(null)
   const stateIdRef = useRef<string | null>(null)
   const resolvingEventRef = useRef(false)
+  // Ref siempre actualizado con el estado más reciente de jugadores.
+  // Permite calcular posiciones correctas en eliminaciones rápidas consecutivas
+  // sin depender del closure de state (que puede estar desactualizado).
+  const playersRef = useRef<LiveTournamentState['players']>(DEFAULT_STATE.players)
+  playersRef.current = state.players
 
   // Control NO maneja countdown - solo Timer lo hace
   // Control solo muestra el estado y envía comandos
@@ -367,7 +372,19 @@ export function useTournamentControl() {
     return 'normal'
   }, [])
 
-  const eliminatePlayer = useCallback(async (id: string, position: number) => {
+  const eliminatePlayer = useCallback(async (id: string) => {
+    // Calcular posición desde el ref (siempre actual), no desde el closure de state.
+    // Esto evita que dos eliminaciones rápidas consecutivas obtengan la misma posición
+    // cuando el estado React aún no procesó la primera actualización.
+    const currentActivePlayers = playersRef.current.filter((p) => p.status === 'active')
+    const position = currentActivePlayers.length
+
+    // Actualizar el ref de forma optimista para que la próxima eliminación
+    // rápida vea la posición correcta antes de que React actualice el estado.
+    playersRef.current = playersRef.current.map((p) =>
+      p.id === id ? { ...p, status: 'eliminated' as const, position } : p
+    )
+
     try {
       const { error: updateError } = await supabase
         .from('live_tournament_players')
@@ -549,17 +566,38 @@ export function useTournamentControl() {
         state.buyInAmount
       )
 
-      // Crear registros de resultados
-      const totalPlayers = state.players.length
+      // Usar la posición máxima asignada como referencia del total de jugadores
+      // para el cálculo de puntos. Esto es necesario porque si se elimina un jugador
+      // de la lista mid-torneo (ej: "no vino"), state.players.length disminuye pero
+      // las posiciones ya asignadas siguen siendo correctas respecto al momento en
+      // que cada jugador fue eliminado.
+      //
+      // Ejemplo: 26 registrados → Orfa eliminada (pos=26) → Santi removido ("no vino")
+      // → state.players.length=25. Si usáramos 25, Orfa (pos=26) quedaría sin puntos
+      // y Hernan (pos=25) recibiría la penalización de último cuando no lo era.
+      // Con maxPosition=26: Orfa→-0.5 (correcto), Hernan→+0.5 presencial (correcto).
+      const maxPosition = playersWithPositions.length > 0
+        ? Math.max(...playersWithPositions.map((p) => p.position ?? 0))
+        : 0
+
+      // Si múltiples jugadores comparten la posición máxima (eliminados simultáneamente
+      // en la misma mano), ninguno recibe la penalización: quedan como presencial.
+      const playersAtLastPosition = playersWithPositions.filter(
+        (p) => p.position === maxPosition
+      ).length
+      const hasDuplicateLastPlace = playersAtLastPosition > 1
+
       const results = playersWithPositions.map((player) => {
         const position = player.position ?? 0
         const prizeInfo = prizeBreakdown.prizes.find((p) => p.position === position)
+        // totalForPoints = maxPosition en caso normal, maxPosition+1 si hay empate en último
+        const totalForPoints = hasDuplicateLastPlace ? maxPosition + 1 : maxPosition
         return {
           event_id: eventId,
           player_id: player.playerId,
           position,
           rebuys: player.hasRebuy ? 1 : 0,
-          points: getPointsForPosition(position, totalPlayers),
+          points: getPointsForPosition(position, totalForPoints),
           prize: prizeInfo?.amount ?? 0,
         }
       })
