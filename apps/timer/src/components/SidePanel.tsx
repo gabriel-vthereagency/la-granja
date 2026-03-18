@@ -5,7 +5,7 @@ interface SidePanelProps {
   players: LivePlayer[]
 }
 
-const MAX_VISIBLE_ELIMINADOS = 7
+const MAX_VISIBLE_ELIMINADOS = 9
 const RECOMPRAS_SCROLL_THRESHOLD = 5
 
 export function SidePanel({ type, players }: SidePanelProps) {
