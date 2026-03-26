@@ -16,6 +16,9 @@ export interface PlayerCard {
 
 const MIN_PRESENCES = 30
 
+// Players to always show regardless of minimum presences
+const ALWAYS_SHOW: string[] = ['dipi']
+
 function formatMemberSince(dateStr: string | null): string | null {
   if (!dateStr) return null
   return new Date(dateStr).toLocaleDateString('es-AR', {
@@ -25,8 +28,8 @@ function formatMemberSince(dateStr: string | null): string | null {
 }
 
 async function fetchPlayers(): Promise<PlayerCard[]> {
-  // Fetch player stats + HOF titles in parallel
-  const [viewResult, hofResult] = await Promise.all([
+  // Fetch player stats + HOF titles + always-show players in parallel
+  const [viewResult, hofResult, alwaysShowResult] = await Promise.all([
     supabase
       .from('player_complete_stats')
       .select('player_id, player_name, avatar_url, total_events, golds, silvers, bronzes, member_since')
@@ -36,6 +39,12 @@ async function fetchPlayers(): Promise<PlayerCard[]> {
       .from('hall_of_fame')
       .select('player_id')
       .eq('tournament_type', 'final_seven'),
+    ALWAYS_SHOW.length > 0
+      ? supabase
+          .from('player_complete_stats')
+          .select('player_id, player_name, avatar_url, total_events, golds, silvers, bronzes, member_since')
+          .in('player_id', ALWAYS_SHOW)
+      : Promise.resolve({ data: [], error: null }),
   ])
 
   // Build HOF count map
@@ -48,7 +57,18 @@ async function fetchPlayers(): Promise<PlayerCard[]> {
   }
 
   if (!viewResult.error && viewResult.data?.length) {
-    return viewResult.data.map((p) => {
+    // Merge main results with always-show players (avoid duplicates)
+    const allRows = [...viewResult.data]
+    if (!alwaysShowResult.error && alwaysShowResult.data) {
+      for (const extra of alwaysShowResult.data) {
+        if (!allRows.some((r) => r.player_id === extra.player_id)) {
+          allRows.push(extra)
+        }
+      }
+    }
+    allRows.sort((a, b) => (a.player_name as string).localeCompare(b.player_name as string))
+
+    return allRows.map((p) => {
       const golds = Number(p.golds) || 0
       const silvers = Number(p.silvers) || 0
       const bronzes = Number(p.bronzes) || 0
