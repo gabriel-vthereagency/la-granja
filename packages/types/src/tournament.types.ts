@@ -92,4 +92,10 @@ export const BLIND_STRUCTURE: BlindLevel[] = [
   { index: 24, type: 'level', sb: 400, bb: 800, ante: 0, durationSec: 900 },
   { index: 25, type: 'level', sb: 500, bb: 1000, ante: 0, durationSec: 900 },
   { index: 26, type: 'level', sb: 600, bb: 1200, ante: 0, durationSec: 900 },
+  { index: 27, type: 'level', sb: 700, bb: 1400, ante: 0, durationSec: 900 },
+  { index: 28, type: 'level', sb: 800, bb: 1600, ante: 0, durationSec: 900 },
+  { index: 29, type: 'level', sb: 1000, bb: 2000, ante: 0, durationSec: 900 },
+  { index: 30, type: 'level', sb: 1200, bb: 2400, ante: 0, durationSec: 900 },
+  { index: 31, type: 'level', sb: 1500, bb: 3000, ante: 0, durationSec: 900 },
+  { index: 32, type: 'level', sb: 2000, bb: 4000, ante: 0, durationSec: 900 },
 ]
