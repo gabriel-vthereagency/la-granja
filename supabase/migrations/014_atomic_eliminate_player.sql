@@ -7,10 +7,10 @@
 -- Returns the assigned position as an integer.
 --
 -- How it works:
--- 1. Counts currently eliminated players in the same tournament
+-- 1. Locks the player row and all active rows in the tournament (FOR UPDATE)
 -- 2. Counts currently active players (including the one being eliminated)
 -- 3. Position = active count (the last active player gets position = total active)
--- 4. Uses FOR UPDATE to lock the row and prevent concurrent modifications
+-- 4. The lock serializes concurrent eliminations from multiple devices
 -- 5. Returns the assigned position so the client can update local state
 
 CREATE OR REPLACE FUNCTION eliminate_player(p_player_id uuid)
@@ -32,13 +32,21 @@ BEGIN
     RAISE EXCEPTION 'Player % not found', p_player_id;
   END IF;
 
-  -- Count active players in this tournament (including the one being eliminated)
-  -- Lock all rows in this tournament to serialize concurrent eliminations
-  SELECT COUNT(*) INTO v_active_count
+  -- Lock all active player rows in this tournament to serialize
+  -- concurrent eliminations from multiple devices.
+  -- FOR UPDATE cannot be used with aggregate functions, so we lock
+  -- first with PERFORM, then count separately.
+  PERFORM id
   FROM live_tournament_players
   WHERE tournament_state_id = v_tournament_state_id
     AND status = 'active'
   FOR UPDATE;
+
+  -- Count active players (including the one being eliminated)
+  SELECT COUNT(*) INTO v_active_count
+  FROM live_tournament_players
+  WHERE tournament_state_id = v_tournament_state_id
+    AND status = 'active';
 
   -- Position = number of active players (last active = highest position number)
   v_position := v_active_count;
