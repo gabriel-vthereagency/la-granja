@@ -17,7 +17,7 @@ export interface PlayerCard {
 const MIN_PRESENCES = 30
 
 // Players to always show regardless of minimum presences
-const ALWAYS_SHOW: string[] = ['dipi']
+const ALWAYS_SHOW: string[] = ['dipi', 'teto']
 
 function formatMemberSince(dateStr: string | null): string | null {
   if (!dateStr) return null
