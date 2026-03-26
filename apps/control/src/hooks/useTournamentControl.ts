@@ -36,11 +36,6 @@ export function useTournamentControl() {
   const [error, setError] = useState<string | null>(null)
   const stateIdRef = useRef<string | null>(null)
   const resolvingEventRef = useRef(false)
-  // Ref siempre actualizado con el estado más reciente de jugadores.
-  // Permite calcular posiciones correctas en eliminaciones rápidas consecutivas
-  // sin depender del closure de state (que puede estar desactualizado).
-  const playersRef = useRef<LiveTournamentState['players']>(DEFAULT_STATE.players)
-  playersRef.current = state.players
 
   // Control NO maneja countdown - solo Timer lo hace
   // Control solo muestra el estado y envía comandos
@@ -373,25 +368,15 @@ export function useTournamentControl() {
   }, [])
 
   const eliminatePlayer = useCallback(async (id: string) => {
-    // Calcular posición desde el ref (siempre actual), no desde el closure de state.
-    // Esto evita que dos eliminaciones rápidas consecutivas obtengan la misma posición
-    // cuando el estado React aún no procesó la primera actualización.
-    const currentActivePlayers = playersRef.current.filter((p) => p.status === 'active')
-    const position = currentActivePlayers.length
-
-    // Actualizar el ref de forma optimista para que la próxima eliminación
-    // rápida vea la posición correcta antes de que React actualice el estado.
-    playersRef.current = playersRef.current.map((p) =>
-      p.id === id ? { ...p, status: 'eliminated' as const, position } : p
-    )
-
     try {
-      const { error: updateError } = await supabase
-        .from('live_tournament_players')
-        .update({ status: 'eliminated', position })
-        .eq('id', id)
+      // Posición se calcula atómicamente en el servidor (función SQL) para evitar
+      // race conditions cuando múltiples dispositivos eliminan jugadores simultáneamente.
+      // La función bloquea las filas del torneo con FOR UPDATE, garantizando que
+      // dos eliminaciones concurrentes nunca obtengan la misma posición.
+      const { data: position, error: rpcError } = await supabase
+        .rpc('eliminate_player', { p_player_id: id })
 
-      if (updateError) throw updateError
+      if (rpcError) throw rpcError
 
       // Actualizar estado local y calcular nueva fase
       setState((prev) => {
