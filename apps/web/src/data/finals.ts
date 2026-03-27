@@ -313,7 +313,7 @@ export const SUMMER_DATA: FinalData[] = [
   {
     year: 2021, type: 'summer',
     results: [
-      { position: 1, name: 'Simón & Araña', playerKey: 'simon' },
+      { position: 1, name: 'Papelón Histórico', playerKey: 'trihead' },
       { position: 2, name: 'FFF', playerKey: 'fff' },
       { position: 3, name: 'Santi', playerKey: 'santi' },
       { position: 4, name: 'Gabo', playerKey: 'gabo' },
