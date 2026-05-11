@@ -308,25 +308,20 @@ export function useTournamentControl() {
     if (!stateIdRef.current) return
 
     try {
-      const { data, error: insertError } = await supabase
-        .from('live_tournament_players')
-        .insert({
-          tournament_state_id: stateIdRef.current,
-          player_id: player.playerId, // Referencia a tabla players (puede ser null)
-          name: player.name,
-          status: 'active',
-          has_rebuy: false,
+      const { data: newId, error: rpcError } = await supabase
+        .rpc('add_player', {
+          p_tournament_state_id: stateIdRef.current,
+          p_player_id: player.playerId,
+          p_name: player.name,
         })
-        .select()
-        .single()
 
-      if (insertError) throw insertError
+      if (rpcError) throw rpcError
 
-      if (data) {
+      if (newId) {
         const newPlayer: LivePlayer = {
-          id: data.id, // UUID de live_tournament_players (para DB ops)
-          playerId: player.playerId, // ID del jugador en tabla players
-          name: data.name,
+          id: newId as unknown as string,
+          playerId: player.playerId,
+          name: player.name,
           status: 'active',
           position: null,
           hasRebuy: false,
@@ -343,12 +338,10 @@ export function useTournamentControl() {
 
   const removePlayer = useCallback(async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('live_tournament_players')
-        .delete()
-        .eq('id', id)
+      const { error: rpcError } = await supabase
+        .rpc('remove_player', { p_player_id: id })
 
-      if (deleteError) throw deleteError
+      if (rpcError) throw rpcError
 
       setState((prev) => ({
         ...prev,
@@ -465,12 +458,10 @@ export function useTournamentControl() {
   // Deshacer eliminación (volver a activo)
   const revertElimination = useCallback(async (id: string) => {
     try {
-      const { error: updateError } = await supabase
-        .from('live_tournament_players')
-        .update({ status: 'active', position: null })
-        .eq('id', id)
+      const { error: rpcError } = await supabase
+        .rpc('revert_elimination', { p_player_id: id })
 
-      if (updateError) throw updateError
+      if (rpcError) throw rpcError
 
       setState((prev) => ({
         ...prev,
