@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import type { LiveTournamentState, LivePlayer, GamePhase } from '@lagranja/types'
 import {
   BLIND_STRUCTURE,
-  getPointsForPosition,
+  getPointsForResults,
   calculatePrizePool,
   type SeasonType,
 } from '@lagranja/core'
@@ -542,38 +542,19 @@ export function useTournamentControl() {
         state.buyInAmount
       )
 
-      // Usar la posición máxima asignada como referencia del total de jugadores
-      // para el cálculo de puntos. Esto es necesario porque si se elimina un jugador
-      // de la lista mid-torneo (ej: "no vino"), state.players.length disminuye pero
-      // las posiciones ya asignadas siguen siendo correctas respecto al momento en
-      // que cada jugador fue eliminado.
-      //
-      // Ejemplo: 26 registrados → Orfa eliminada (pos=26) → Santi removido ("no vino")
-      // → state.players.length=25. Si usáramos 25, Orfa (pos=26) quedaría sin puntos
-      // y Hernan (pos=25) recibiría la penalización de último cuando no lo era.
-      // Con maxPosition=26: Orfa→-0.5 (correcto), Hernan→+0.5 presencial (correcto).
-      const maxPosition = playersWithPositions.length > 0
-        ? Math.max(...playersWithPositions.map((p) => p.position ?? 0))
-        : 0
-
-      // Si múltiples jugadores comparten la posición máxima (eliminados simultáneamente
-      // en la misma mano), ninguno recibe la penalización: quedan como presencial.
-      const playersAtLastPosition = playersWithPositions.filter(
-        (p) => p.position === maxPosition
-      ).length
-      const hasDuplicateLastPlace = playersAtLastPosition > 1
+      const pointsByPosition = getPointsForResults(
+        playersWithPositions.map((p) => p.position ?? 0)
+      )
 
       const results = playersWithPositions.map((player) => {
         const position = player.position ?? 0
         const prizeInfo = prizeBreakdown.prizes.find((p) => p.position === position)
-        // totalForPoints = maxPosition en caso normal, maxPosition+1 si hay empate en último
-        const totalForPoints = hasDuplicateLastPlace ? maxPosition + 1 : maxPosition
         return {
           event_id: eventId,
           player_id: player.playerId,
           position,
           rebuys: player.hasRebuy ? 1 : 0,
-          points: getPointsForPosition(position, totalForPoints),
+          points: pointsByPosition.get(position) ?? 0,
           prize: prizeInfo?.amount ?? 0,
         }
       })
