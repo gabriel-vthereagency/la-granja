@@ -87,3 +87,116 @@ BEGIN
   RETURN v_assigned_position;
 END;
 $$;
+
+-- 4. add_player RPC: inserta un jugador y recalcula posiciones de los eliminados.
+CREATE OR REPLACE FUNCTION add_player(
+  p_tournament_state_id uuid,
+  p_player_id text,
+  p_name text
+)
+RETURNS uuid
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_new_id uuid;
+BEGIN
+  PERFORM id
+  FROM live_tournament_players
+  WHERE tournament_state_id = p_tournament_state_id
+  FOR UPDATE;
+
+  INSERT INTO live_tournament_players (
+    tournament_state_id, player_id, name, status, has_rebuy
+  ) VALUES (
+    p_tournament_state_id, p_player_id, p_name, 'active', false
+  )
+  RETURNING id INTO v_new_id;
+
+  PERFORM recalc_positions(p_tournament_state_id);
+
+  RETURN v_new_id;
+END;
+$$;
+
+-- 5. remove_player RPC: borra un jugador y recalcula posiciones.
+--    Solo permitido si el jugador está activo (un eliminado no debería borrarse).
+CREATE OR REPLACE FUNCTION remove_player(p_player_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_tournament_state_id uuid;
+  v_status text;
+BEGIN
+  SELECT tournament_state_id, status INTO v_tournament_state_id, v_status
+  FROM live_tournament_players
+  WHERE id = p_player_id
+  FOR UPDATE;
+
+  IF v_tournament_state_id IS NULL THEN
+    RAISE EXCEPTION 'Player % not found', p_player_id;
+  END IF;
+
+  IF v_status <> 'active' THEN
+    RAISE EXCEPTION 'Cannot remove eliminated player % (use revert_elimination first)', p_player_id;
+  END IF;
+
+  PERFORM id
+  FROM live_tournament_players
+  WHERE tournament_state_id = v_tournament_state_id
+  FOR UPDATE;
+
+  DELETE FROM live_tournament_players WHERE id = p_player_id;
+
+  PERFORM recalc_positions(v_tournament_state_id);
+END;
+$$;
+
+-- 6. revert_elimination RPC: deshace una eliminación.
+--    El jugador vuelve a 'active', se le quita elimination_order y position.
+--    Los demás eliminados conservan su elimination_order pero su position se
+--    recalcula con el nuevo total efectivo (los activos no afectan el cálculo
+--    porque elimination_order es NULL para ellos, pero sí afectan v_total).
+CREATE OR REPLACE FUNCTION revert_elimination(p_player_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_tournament_state_id uuid;
+  v_reverted_order integer;
+BEGIN
+  SELECT tournament_state_id, elimination_order
+  INTO v_tournament_state_id, v_reverted_order
+  FROM live_tournament_players
+  WHERE id = p_player_id
+  FOR UPDATE;
+
+  IF v_tournament_state_id IS NULL THEN
+    RAISE EXCEPTION 'Player % not found', p_player_id;
+  END IF;
+
+  IF v_reverted_order IS NULL THEN
+    RAISE EXCEPTION 'Player % is not eliminated', p_player_id;
+  END IF;
+
+  PERFORM id
+  FROM live_tournament_players
+  WHERE tournament_state_id = v_tournament_state_id
+  FOR UPDATE;
+
+  -- Quitar al jugador del orden de eliminación y compactar los órdenes mayores
+  -- (los que se eliminaron DESPUÉS bajan 1 puesto en el orden).
+  UPDATE live_tournament_players
+  SET status = 'active',
+      position = NULL,
+      elimination_order = NULL
+  WHERE id = p_player_id;
+
+  UPDATE live_tournament_players
+  SET elimination_order = elimination_order - 1
+  WHERE tournament_state_id = v_tournament_state_id
+    AND elimination_order > v_reverted_order;
+
+  PERFORM recalc_positions(v_tournament_state_id);
+END;
+$$;
