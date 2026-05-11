@@ -200,3 +200,22 @@ BEGIN
   PERFORM recalc_positions(v_tournament_state_id);
 END;
 $$;
+
+-- 7. Backfill elimination_order for eliminated players in any in-progress tournament.
+--    Strategy: derive elimination_order from the current `position` column,
+--    inverting the formula: elimination_order = (total_in_tournament) - position + 1.
+--    This is best-effort: if positions are already corrupted (duplicates, gaps),
+--    the backfill will reflect that corruption. Live tournaments should be empty
+--    at deploy time anyway (the bug only manifests during a tournament).
+WITH totals AS (
+  SELECT tournament_state_id, COUNT(*) AS total
+  FROM live_tournament_players
+  GROUP BY tournament_state_id
+)
+UPDATE live_tournament_players p
+SET elimination_order = totals.total - p.position + 1
+FROM totals
+WHERE p.tournament_state_id = totals.tournament_state_id
+  AND p.status = 'eliminated'
+  AND p.position IS NOT NULL
+  AND p.elimination_order IS NULL;
