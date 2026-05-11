@@ -35,3 +35,55 @@ BEGIN
     AND elimination_order IS NOT NULL;
 END;
 $$;
+
+-- 3. Rewrite eliminate_player to use elimination_order + recalc_positions.
+--    Returns the position now assigned to the player (after recalc).
+CREATE OR REPLACE FUNCTION eliminate_player(p_player_id uuid)
+RETURNS integer
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_tournament_state_id uuid;
+  v_next_order integer;
+  v_assigned_position integer;
+BEGIN
+  SELECT tournament_state_id INTO v_tournament_state_id
+  FROM live_tournament_players
+  WHERE id = p_player_id
+  FOR UPDATE;
+
+  IF v_tournament_state_id IS NULL THEN
+    RAISE EXCEPTION 'Player % not found', p_player_id;
+  END IF;
+
+  -- Lock all rows in this tournament so concurrent eliminations / adds / removes
+  -- on the same tournament serialize through this RPC.
+  PERFORM id
+  FROM live_tournament_players
+  WHERE tournament_state_id = v_tournament_state_id
+  FOR UPDATE;
+
+  -- Next elimination_order: 1 if first eliminated, else max+1.
+  SELECT COALESCE(MAX(elimination_order), 0) + 1 INTO v_next_order
+  FROM live_tournament_players
+  WHERE tournament_state_id = v_tournament_state_id;
+
+  UPDATE live_tournament_players
+  SET status = 'eliminated',
+      elimination_order = v_next_order
+  WHERE id = p_player_id
+    AND status = 'active';
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Player % is not active (already eliminated or removed)', p_player_id;
+  END IF;
+
+  PERFORM recalc_positions(v_tournament_state_id);
+
+  SELECT position INTO v_assigned_position
+  FROM live_tournament_players
+  WHERE id = p_player_id;
+
+  RETURN v_assigned_position;
+END;
+$$;
