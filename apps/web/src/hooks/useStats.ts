@@ -130,7 +130,7 @@ async function fetchStats(): Promise<StatsData> {
   while (true) {
     const { data: page, error: resultsError } = await supabase
       .from('event_results')
-      .select('event_id, player_id, position, points, is_bubble, players(id, name)')
+      .select('event_id, player_id, position, points, position_text, is_bubble, players(id, name)')
       .range(from, from + pageSize - 1)
 
     if (resultsError) throw resultsError
@@ -188,7 +188,7 @@ async function fetchStats(): Promise<StatsData> {
     if (pos >= 1 && pos <= 5) current.podiums += 1
     if (pos === 1) current.wins += 1
 
-    if (Number(r.points) < 0) current.lastPlaces += 1
+    if (Number(r.points) < 0 || r.position_text === 'ULTIMO') current.lastPlaces += 1
 
     if (r.is_bubble === true || (r.is_bubble == null && pos === 6)) current.bubbles += 1
 
