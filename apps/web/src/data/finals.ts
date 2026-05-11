@@ -165,7 +165,7 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
       { position: 2, name: 'Santini', playerKey: 'santini' },
       { position: 3, name: 'Gabo', playerKey: 'gabo' },
       { position: 4, name: 'FFF', playerKey: 'fff' },
-      { position: 5, name: 'Pep', playerKey: 'pep' },
+      { position: 5, name: 'Guardiola', playerKey: 'pep' },
       { position: 6, name: 'Mich', playerKey: 'mich' },
       { position: 7, name: 'Araña', playerKey: 'arana' },
       { position: 8, name: 'Santi', playerKey: 'santi' },
@@ -239,7 +239,7 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
   {
     year: 2024, type: 'clausura',
     results: [
-      { position: 1, name: 'Pep', playerKey: 'pep' },
+      { position: 1, name: 'Guardiola', playerKey: 'pep' },
       { position: 2, name: 'Tala', playerKey: 'tala' },
       { position: 3, name: 'Shark', playerKey: 'shark' },
       { position: 4, name: 'Galle', playerKey: 'galle' },
@@ -354,7 +354,7 @@ export const SUMMER_DATA: FinalData[] = [
     year: 2025, type: 'summer',
     results: [
       { position: 1, name: 'Ari', playerKey: 'ari' },
-      { position: 2, name: 'Pep', playerKey: 'pep' },
+      { position: 2, name: 'Guardiola', playerKey: 'pep' },
       { position: 3, name: 'Fechele', playerKey: 'fechele' },
       { position: 4, name: 'Woody', playerKey: 'woody' },
       { position: 5, name: 'Gabo', playerKey: 'gabo' },
@@ -363,7 +363,7 @@ export const SUMMER_DATA: FinalData[] = [
   {
     year: 2026, type: 'summer',
     results: [
-      { position: 1, name: 'Tincho B', playerKey: 'tinchob' },
+      { position: 1, name: 'Martino', playerKey: 'tinchob' },
       { position: 2, name: 'Tala', playerKey: 'tala' },
       { position: 3, name: 'Gianni', playerKey: 'gianni' },
       { position: 4, name: 'Galle', playerKey: 'galle' },
