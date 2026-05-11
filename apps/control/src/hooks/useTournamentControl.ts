@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import type { LiveTournamentState, LivePlayer, GamePhase } from '@lagranja/types'
 import {
   BLIND_STRUCTURE,
-  getPointsForPosition,
+  getPointsForResults,
   calculatePrizePool,
   type SeasonType,
 } from '@lagranja/core'
@@ -308,25 +308,20 @@ export function useTournamentControl() {
     if (!stateIdRef.current) return
 
     try {
-      const { data, error: insertError } = await supabase
-        .from('live_tournament_players')
-        .insert({
-          tournament_state_id: stateIdRef.current,
-          player_id: player.playerId, // Referencia a tabla players (puede ser null)
-          name: player.name,
-          status: 'active',
-          has_rebuy: false,
+      const { data: newId, error: rpcError } = await supabase
+        .rpc('add_player', {
+          p_tournament_state_id: stateIdRef.current,
+          p_player_id: player.playerId,
+          p_name: player.name,
         })
-        .select()
-        .single()
 
-      if (insertError) throw insertError
+      if (rpcError) throw rpcError
 
-      if (data) {
+      if (newId) {
         const newPlayer: LivePlayer = {
-          id: data.id, // UUID de live_tournament_players (para DB ops)
-          playerId: player.playerId, // ID del jugador en tabla players
-          name: data.name,
+          id: newId as unknown as string,
+          playerId: player.playerId,
+          name: player.name,
           status: 'active',
           position: null,
           hasRebuy: false,
@@ -343,12 +338,10 @@ export function useTournamentControl() {
 
   const removePlayer = useCallback(async (id: string) => {
     try {
-      const { error: deleteError } = await supabase
-        .from('live_tournament_players')
-        .delete()
-        .eq('id', id)
+      const { error: rpcError } = await supabase
+        .rpc('remove_player', { p_player_id: id })
 
-      if (deleteError) throw deleteError
+      if (rpcError) throw rpcError
 
       setState((prev) => ({
         ...prev,
@@ -465,12 +458,10 @@ export function useTournamentControl() {
   // Deshacer eliminación (volver a activo)
   const revertElimination = useCallback(async (id: string) => {
     try {
-      const { error: updateError } = await supabase
-        .from('live_tournament_players')
-        .update({ status: 'active', position: null })
-        .eq('id', id)
+      const { error: rpcError } = await supabase
+        .rpc('revert_elimination', { p_player_id: id })
 
-      if (updateError) throw updateError
+      if (rpcError) throw rpcError
 
       setState((prev) => ({
         ...prev,
@@ -551,38 +542,19 @@ export function useTournamentControl() {
         state.buyInAmount
       )
 
-      // Usar la posición máxima asignada como referencia del total de jugadores
-      // para el cálculo de puntos. Esto es necesario porque si se elimina un jugador
-      // de la lista mid-torneo (ej: "no vino"), state.players.length disminuye pero
-      // las posiciones ya asignadas siguen siendo correctas respecto al momento en
-      // que cada jugador fue eliminado.
-      //
-      // Ejemplo: 26 registrados → Orfa eliminada (pos=26) → Santi removido ("no vino")
-      // → state.players.length=25. Si usáramos 25, Orfa (pos=26) quedaría sin puntos
-      // y Hernan (pos=25) recibiría la penalización de último cuando no lo era.
-      // Con maxPosition=26: Orfa→-0.5 (correcto), Hernan→+0.5 presencial (correcto).
-      const maxPosition = playersWithPositions.length > 0
-        ? Math.max(...playersWithPositions.map((p) => p.position ?? 0))
-        : 0
-
-      // Si múltiples jugadores comparten la posición máxima (eliminados simultáneamente
-      // en la misma mano), ninguno recibe la penalización: quedan como presencial.
-      const playersAtLastPosition = playersWithPositions.filter(
-        (p) => p.position === maxPosition
-      ).length
-      const hasDuplicateLastPlace = playersAtLastPosition > 1
+      const pointsByPosition = getPointsForResults(
+        playersWithPositions.map((p) => p.position ?? 0)
+      )
 
       const results = playersWithPositions.map((player) => {
         const position = player.position ?? 0
         const prizeInfo = prizeBreakdown.prizes.find((p) => p.position === position)
-        // totalForPoints = maxPosition en caso normal, maxPosition+1 si hay empate en último
-        const totalForPoints = hasDuplicateLastPlace ? maxPosition + 1 : maxPosition
         return {
           event_id: eventId,
           player_id: player.playerId,
           position,
           rebuys: player.hasRebuy ? 1 : 0,
-          points: getPointsForPosition(position, totalForPoints),
+          points: pointsByPosition.get(position) ?? 0,
           prize: prizeInfo?.amount ?? 0,
         }
       })
