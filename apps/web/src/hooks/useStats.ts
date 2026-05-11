@@ -158,15 +158,6 @@ async function fetchStats(): Promise<StatsData> {
     }
   }
 
-  const maxPositionByEvent = new Map<string, number>()
-  for (const r of results) {
-    const pos = Number(r.position)
-    if (pos > 0) {
-      const current = maxPositionByEvent.get(r.event_id) ?? 0
-      if (pos > current) maxPositionByEvent.set(r.event_id, pos)
-    }
-  }
-
   const perPlayer = new Map<string, {
     name: string
     points: number
@@ -197,8 +188,7 @@ async function fetchStats(): Promise<StatsData> {
     if (pos >= 1 && pos <= 5) current.podiums += 1
     if (pos === 1) current.wins += 1
 
-    const maxPos = maxPositionByEvent.get(r.event_id) ?? 0
-    if (pos > 0 && pos === maxPos) current.lastPlaces += 1
+    if (Number(r.points) < 0) current.lastPlaces += 1
 
     if (r.is_bubble === true || (r.is_bubble == null && pos === 6)) current.bubbles += 1
 
