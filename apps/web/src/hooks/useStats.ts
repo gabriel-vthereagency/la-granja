@@ -123,6 +123,7 @@ async function fetchStats(): Promise<StatsData> {
     player_id: string
     position: number
     points: number
+    position_text: string | null
     is_bubble: boolean | null
     players: { id: string; name: string } | { id: string; name: string }[] | null
   }> = []
