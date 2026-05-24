@@ -135,9 +135,9 @@ export function HallOfFamePage() {
         <motion.section className="space-y-8" variants={fadeIn} initial="initial" animate="animate">
           <h2 className="text-xl font-medium text-gold">Hall of Fame (Final Seven)</h2>
 
-          {hofGroups.master.length > 0 && (
+          {(hofGroups.master.length > 0 || hofGroups.tri.length > 0) && (
             <>
-              {/* Desktop */}
+              {/* Desktop — Master + Tri en la misma fila */}
               <motion.div
                 className="hidden md:flex md:flex-wrap md:justify-center gap-4"
                 variants={staggerContainer}
@@ -149,8 +149,13 @@ export function HallOfFamePage() {
                     <MasterHofDesktopCard player={player} />
                   </motion.div>
                 ))}
+                {hofGroups.tri.map((player) => (
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <HofDesktopCard player={player} tier="tri" />
+                  </motion.div>
+                ))}
               </motion.div>
-              {/* Mobile */}
+              {/* Mobile — Master + Tri secuenciales */}
               <motion.div
                 className="md:hidden space-y-2"
                 variants={staggerContainer}
@@ -162,35 +167,6 @@ export function HallOfFamePage() {
                     <MasterHofMobileCard player={player} />
                   </motion.div>
                 ))}
-              </motion.div>
-              {(hofGroups.tri.length > 0 || hofGroups.bi.length > 0 || hofGroups.rest.length > 0) && (
-                <div className="border-t border-glass-border" />
-              )}
-            </>
-          )}
-
-          {hofGroups.tri.length > 0 && (
-            <>
-              {/* Desktop */}
-              <motion.div
-                className="hidden md:flex md:flex-wrap md:justify-center gap-4"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-              >
-                {hofGroups.tri.map((player) => (
-                  <motion.div key={player.playerId} variants={staggerItem}>
-                    <HofDesktopCard player={player} tier="tri" />
-                  </motion.div>
-                ))}
-              </motion.div>
-              {/* Mobile */}
-              <motion.div
-                className="md:hidden space-y-2"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-              >
                 {hofGroups.tri.map((player) => (
                   <motion.div key={player.playerId} variants={staggerItem}>
                     <HofMobileCard player={player} tier="tri" />
@@ -200,7 +176,7 @@ export function HallOfFamePage() {
             </>
           )}
 
-          {hofGroups.tri.length > 0 && hofGroups.bi.length > 0 && (
+          {(hofGroups.master.length > 0 || hofGroups.tri.length > 0) && hofGroups.bi.length > 0 && (
             <div className="border-t border-glass-border" />
           )}
 
@@ -466,15 +442,13 @@ function MasterHofDesktopCard({ player }: { player: HofPlayerGroup }) {
       <img
         src="/MASTER-HOF.png"
         alt=""
-        className="absolute -top-8 -left-8 w-56 h-56 object-contain opacity-[0.12] -rotate-12 pointer-events-none select-none"
+        className="absolute -top-12 -left-16 w-72 h-72 object-contain opacity-[0.22] -rotate-12 pointer-events-none select-none"
         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
       />
-
-      {/* Bottom-right second copy for extra texture */}
       <img
         src="/MASTER-HOF.png"
         alt=""
-        className="absolute -bottom-10 -right-12 w-48 h-48 object-contain opacity-[0.08] rotate-12 pointer-events-none select-none"
+        className="absolute -bottom-14 -right-14 w-64 h-64 object-contain opacity-[0.18] rotate-12 pointer-events-none select-none"
         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
       />
 
@@ -543,7 +517,7 @@ function MasterHofMobileCard({ player }: { player: HofPlayerGroup }) {
       <img
         src="/MASTER-HOF.png"
         alt=""
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 object-contain opacity-[0.12] -rotate-12 pointer-events-none select-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 object-contain opacity-[0.20] -rotate-12 pointer-events-none select-none"
         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
       />
 
