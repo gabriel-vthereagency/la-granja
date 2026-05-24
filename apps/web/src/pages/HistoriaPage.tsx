@@ -118,7 +118,7 @@ export function HistoriaPage() {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-semibold text-text-primary">Videos</p>
-                  <p className="text-[11px] text-text-tertiary">4 videos</p>
+                  <p className="text-[11px] text-text-tertiary">5 videos</p>
                 </div>
               </div>
             </Link>

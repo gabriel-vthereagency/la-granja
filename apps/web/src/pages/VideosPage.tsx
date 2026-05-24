@@ -6,6 +6,7 @@ import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 /* ─── Video Data ─── */
 
 const VIDEOS = [
+  { id: 'zwmwth', title: 'Cuando te convertiste en HOF' },
   { id: 'nnitgw', title: 'Final Seven — Clausura 2025' },
   { id: '9nzlo3', title: 'Final Seven — Apertura 2025' },
   { id: 'ijpsrh', title: 'Final Seven — Clausura 2024' },
