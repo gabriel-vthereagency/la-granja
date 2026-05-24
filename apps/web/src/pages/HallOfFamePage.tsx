@@ -31,10 +31,21 @@ interface TierConfig {
   pillBorder: string
 }
 
-type TierKey = 'tri' | 'bi' | 'hof'
+type TierKey = 'master' | 'tri' | 'bi' | 'hof'
 type ChampionColorKey = 'purple'
 
+const MASTERHOF_IDS = new Set(['shark'])
+
 const TIER_CONFIGS: Record<TierKey, TierConfig> = {
+  master: {
+    gradient: 'from-accent/30 via-yellow-500/10 to-surface-1',
+    radial: 'rgba(239,68,68,0.25)',
+    glow: 'rgba(239,68,68,0.20)',
+    label: 'MASTERHOF',
+    labelColor: 'text-accent-light',
+    borderHover: 'hover:border-accent/60',
+    pillBorder: 'border-accent/30',
+  },
   tri: {
     gradient: 'from-yellow-500/20 via-surface-2/80 to-surface-1',
     radial: 'rgba(234,179,8,0.15)',
@@ -104,7 +115,13 @@ export function HallOfFamePage() {
   const summerChampions = champions.filter((c) => c.tournamentType === 'summer_cup' || c.tournamentType === 'summer')
   const fracas = champions.filter((c) => c.tournamentType === 'fraca')
 
-  const hofGroups = groupByTitles(finalSevens)
+  const hofGroupsRaw = groupByTitles(finalSevens)
+  const hofGroups = {
+    master: [...hofGroupsRaw.tri, ...hofGroupsRaw.bi, ...hofGroupsRaw.rest].filter((p) => MASTERHOF_IDS.has(p.playerId)),
+    tri: hofGroupsRaw.tri.filter((p) => !MASTERHOF_IDS.has(p.playerId)),
+    bi: hofGroupsRaw.bi.filter((p) => !MASTERHOF_IDS.has(p.playerId)),
+    rest: hofGroupsRaw.rest.filter((p) => !MASTERHOF_IDS.has(p.playerId)),
+  }
   const summerGroups = groupByTitles(summerChampions)
   const summerOrdered = [...summerGroups.tri, ...summerGroups.bi, ...summerGroups.rest]
 
@@ -117,6 +134,40 @@ export function HallOfFamePage() {
       {finalSevens.length > 0 && (
         <motion.section className="space-y-8" variants={fadeIn} initial="initial" animate="animate">
           <h2 className="text-xl font-medium text-gold">Hall of Fame (Final Seven)</h2>
+
+          {hofGroups.master.length > 0 && (
+            <>
+              {/* Desktop */}
+              <motion.div
+                className="hidden md:flex md:flex-wrap md:justify-center gap-4"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                {hofGroups.master.map((player) => (
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <MasterHofDesktopCard player={player} />
+                  </motion.div>
+                ))}
+              </motion.div>
+              {/* Mobile */}
+              <motion.div
+                className="md:hidden space-y-2"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                {hofGroups.master.map((player) => (
+                  <motion.div key={player.playerId} variants={staggerItem}>
+                    <MasterHofMobileCard player={player} />
+                  </motion.div>
+                ))}
+              </motion.div>
+              {(hofGroups.tri.length > 0 || hofGroups.bi.length > 0 || hofGroups.rest.length > 0) && (
+                <div className="border-t border-glass-border" />
+              )}
+            </>
+          )}
 
           {hofGroups.tri.length > 0 && (
             <>
@@ -390,6 +441,145 @@ function groupByTitles(entries: {
     .sort((a, b) => b.maxYear - a.maxYear)
 
   return { tri, bi, rest }
+}
+
+/* ─── MASTERHOF Cards (special tier — one-off, Shark only) ─── */
+
+function MasterHofDesktopCard({ player }: { player: HofPlayerGroup }) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = `/Players/${player.playerId}.png`
+  const config = TIER_CONFIGS.master
+
+  return (
+    <Link
+      to={`/jugadores/${player.playerId}`}
+      className={`group relative block rounded-xl overflow-hidden border-2 border-accent/40 ${config.borderHover} shadow-[0_0_40px_rgba(239,68,68,0.20)] transition-all duration-300 h-[380px] w-[280px]`}
+    >
+      {/* Tier gradient background */}
+      <div className={`absolute inset-0 bg-gradient-to-b ${config.gradient}`} />
+      <div
+        className="absolute inset-0"
+        style={{ background: `radial-gradient(ellipse at 50% 30%, ${config.radial} 0%, transparent 70%)` }}
+      />
+
+      {/* MASTER-HOF logo as rotated transparent backdrop (like champions.png in Summer) */}
+      <img
+        src="/MASTER-HOF.png"
+        alt=""
+        className="absolute -top-8 -left-8 w-56 h-56 object-contain opacity-[0.12] -rotate-12 pointer-events-none select-none"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+
+      {/* Bottom-right second copy for extra texture */}
+      <img
+        src="/MASTER-HOF.png"
+        alt=""
+        className="absolute -bottom-10 -right-12 w-48 h-48 object-contain opacity-[0.08] rotate-12 pointer-events-none select-none"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+
+      {/* Titles count — top-right */}
+      <div className={`absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full bg-glass/80 border border-accent/30 text-sm font-bold ${config.labelColor}`}>
+        {player.titles}x
+      </div>
+
+      {/* Player photo */}
+      <div className="absolute inset-0 flex items-end justify-center pb-[110px]">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt={player.playerName}
+            loading="lazy"
+            className="h-[85%] object-contain drop-shadow-[0_4px_24px_rgba(239,68,68,0.45)] group-hover:scale-[1.03] transition-transform duration-300"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
+          <img src={getMonoFallback(photoSrc)} alt="" className="h-[85%] object-contain drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)] group-hover:scale-[1.03] transition-transform duration-300" />
+        )}
+      </div>
+
+      {/* Glass info panel */}
+      <div className="absolute bottom-3 left-3 right-3 rounded-xl bg-white/[0.06] backdrop-blur-xl border border-accent/20 p-3 pt-4 text-center space-y-1.5 overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{ background: `radial-gradient(ellipse at 50% 0%, ${config.glow} 0%, transparent 60%)` }}
+        />
+        {/* Name pill */}
+        <div className={`relative inline-flex items-center justify-center px-5 py-1 rounded-full bg-gradient-to-r from-accent/[0.15] via-white/[0.18] to-accent/[0.15] border ${config.pillBorder} shadow-[0_0_20px_rgba(239,68,68,0.20)]`}>
+          <h3 className="text-lg font-bold text-text-primary tracking-tight">{player.playerName}</h3>
+        </div>
+        {/* Dual label: MASTERHOF + BIHOF */}
+        <div className="relative flex items-center justify-center gap-2">
+          <span className={`text-xs font-bold tracking-widest ${config.labelColor}`}>MASTERHOF</span>
+          <span className="text-text-tertiary text-xs">·</span>
+          <span className="text-xs font-semibold tracking-widest text-silver">BIHOF</span>
+        </div>
+        {/* Seasons */}
+        <p className="relative text-text-tertiary text-xs">
+          {player.seasons.join(', ')}
+        </p>
+      </div>
+    </Link>
+  )
+}
+
+function MasterHofMobileCard({ player }: { player: HofPlayerGroup }) {
+  const [photoError, setPhotoError] = useState(false)
+  const photoSrc = `/Players/${player.playerId}.png`
+  const config = TIER_CONFIGS.master
+
+  return (
+    <Link
+      to={`/jugadores/${player.playerId}`}
+      className={`group relative block rounded-xl overflow-hidden border-2 border-accent/40 ${config.borderHover} shadow-[0_0_24px_rgba(239,68,68,0.18)] transition-all duration-300 h-[120px]`}
+    >
+      <div className={`absolute inset-0 bg-gradient-to-b ${config.gradient}`} />
+      <div
+        className="absolute inset-0"
+        style={{ background: `radial-gradient(ellipse at 80% 50%, ${config.radial} 0%, transparent 60%)` }}
+      />
+
+      {/* MASTER-HOF logo backdrop */}
+      <img
+        src="/MASTER-HOF.png"
+        alt=""
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 object-contain opacity-[0.12] -rotate-12 pointer-events-none select-none"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+
+      {/* Left info */}
+      <div className="absolute left-3 top-2.5 bottom-2.5 right-28 z-10 flex flex-col justify-between">
+        <div>
+          <div className={`inline-flex self-start items-center px-3 py-0.5 rounded-full bg-gradient-to-r from-accent/[0.15] via-white/[0.18] to-accent/[0.15] border ${config.pillBorder}`}>
+            <span className="font-bold text-text-primary text-sm truncate">{player.playerName}</span>
+          </div>
+          <div className="flex items-center gap-1.5 mt-1 ml-1">
+            <span className={`text-[10px] font-bold tracking-widest ${config.labelColor}`}>MASTERHOF</span>
+            <span className="text-text-tertiary text-[10px]">·</span>
+            <span className="text-[10px] font-semibold tracking-widest text-silver">BIHOF</span>
+          </div>
+        </div>
+        <div className="text-text-tertiary text-[11px] truncate">
+          {player.seasons.join(', ')}
+        </div>
+      </div>
+
+      {/* Player photo */}
+      <div className="absolute right-0 top-0 bottom-0 w-28 overflow-hidden">
+        {!photoError ? (
+          <img
+            src={photoSrc}
+            alt=""
+            loading="lazy"
+            className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(239,68,68,0.40)]"
+            onError={() => setPhotoError(true)}
+          />
+        ) : (
+          <img src={getMonoFallback(photoSrc)} alt="" className="absolute top-[-15%] right-0 h-[160%] object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]" />
+        )}
+      </div>
+    </Link>
+  )
 }
 
 /* ─── HOF Desktop Card ─── */
