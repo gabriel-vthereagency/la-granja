@@ -161,6 +161,7 @@ export function useLiveTournament() {
           // Detectar cambio de nivel → auto-play con tiempo nuevo
           if (stateData.current_level !== lastLevelRef.current) {
             lastLevelRef.current = stateData.current_level as number
+            lastPausedRef.current = false // Auto-play siempre arranca sin pausa
             const levelData = BLIND_STRUCTURE[stateData.current_level as number]
             setState((prev) => ({
               ...prev,
@@ -178,7 +179,9 @@ export function useLiveTournament() {
 
             if (stateData.is_paused) {
               // Al pausar: usar el tiempo LOCAL del Timer (más preciso que la DB)
-              // y sincronizarlo a la DB para que Control lo vea
+              // y sincronizarlo a la DB para que Control lo vea.
+              // También actualizamos gamePhase/champion por si cambiaron junto con la pausa
+              // (ej: declarar campeón = is_paused=true + game_phase='champion' en un mismo UPDATE).
               setState((prev) => {
                 // Guardar tiempo local en DB
                 if (stateIdRef.current) {
@@ -188,7 +191,19 @@ export function useLiveTournament() {
                     .eq('id', stateIdRef.current)
                     .then(({ error: e }) => e && console.error('[Timer] Pause sync error:', e))
                 }
-                return { ...prev, isPaused: true }
+                return {
+                  ...prev,
+                  isPaused: true,
+                  gamePhase: stateData.game_phase
+                    ? (stateData.game_phase as 'normal' | 'final_table' | 'heads_up' | 'champion')
+                    : prev.gamePhase,
+                  championId: stateData.champion_id !== undefined
+                    ? (stateData.champion_id as string | null)
+                    : prev.championId,
+                  championName: stateData.champion_name !== undefined
+                    ? (stateData.champion_name as string | null)
+                    : prev.championName,
+                }
               })
             } else {
               // Unpausing - usar tiempo de DB (que el Timer guardó al pausar)
