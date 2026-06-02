@@ -19,139 +19,112 @@ interface EventNight {
 }
 
 export function useSeasons() {
-  /**
-   * Busca o crea una Season del tipo y ano especificado
-   */
   const findOrCreateSeason = useCallback(
-    async (type: SeasonType, year: number): Promise<Season | null> => {
-      try {
-        // Buscar season existente
-        const { data: existing } = await supabase
-          .from('seasons')
-          .select('*')
-          .eq('type', type)
-          .eq('year', year)
-          .single()
+    async (type: SeasonType, year: number): Promise<Season> => {
+      // Use maybeSingle() so "not found" returns null error instead of PGRST116
+      const { data: existing, error: fetchError } = await supabase
+        .from('seasons')
+        .select('*')
+        .eq('type', type)
+        .eq('year', year)
+        .maybeSingle()
 
-        if (existing) {
-          return {
-            id: existing.id,
-            type: existing.type,
-            year: existing.year,
-            name: existing.name,
-            status: existing.status,
-          }
+      if (fetchError) throw new Error(`Error buscando season: ${fetchError.message}`)
+
+      if (existing) {
+        return {
+          id: existing.id,
+          type: existing.type,
+          year: existing.year,
+          name: existing.name,
+          status: existing.status,
         }
+      }
 
-        // Crear nueva season
-        const name = getSeasonName(type, year)
-        const { data: created, error } = await supabase
-          .from('seasons')
-          .insert({
-            type,
-            year,
-            name,
-            status: 'active',
-          })
-          .select()
-          .single()
+      const name = getSeasonName(type, year)
+      const { data: created, error: insertError } = await supabase
+        .from('seasons')
+        .insert({ type, year, name, status: 'active' })
+        .select()
+        .single()
 
-        if (error) throw error
+      if (insertError) throw new Error(`Error creando season: ${insertError.message}`)
+      if (!created) throw new Error('Season no fue creada')
 
-        return created
-          ? {
-              id: created.id,
-              type: created.type,
-              year: created.year,
-              name: created.name,
-              status: created.status,
-            }
-          : null
-      } catch (err) {
-        console.error('Error finding/creating season:', err)
-        return null
+      return {
+        id: created.id,
+        type: created.type,
+        year: created.year,
+        name: created.name,
+        status: created.status,
       }
     },
     []
   )
 
-  /**
-   * Busca o crea un EventNight para la season y numero especificados
-   */
   const findOrCreateEventNight = useCallback(
     async (
       seasonId: string,
       eventNumber: number,
       date?: Date
-    ): Promise<EventNight | null> => {
-      try {
-        // Buscar event existente
-        const { data: existing } = await supabase
-          .from('event_nights')
-          .select('*')
-          .eq('season_id', seasonId)
-          .eq('number', eventNumber)
-          .single()
+    ): Promise<EventNight> => {
+      const { data: existing, error: fetchError } = await supabase
+        .from('event_nights')
+        .select('*')
+        .eq('season_id', seasonId)
+        .eq('number', eventNumber)
+        .maybeSingle()
 
-        if (existing) {
-          return {
-            id: existing.id,
-            seasonId: existing.season_id,
-            number: existing.number,
-            date: existing.date,
-            status: existing.status,
-          }
+      if (fetchError) throw new Error(`Error buscando fecha: ${fetchError.message}`)
+
+      if (existing) {
+        return {
+          id: existing.id,
+          seasonId: existing.season_id,
+          number: existing.number,
+          date: existing.date,
+          status: existing.status,
         }
+      }
 
-        // Crear nuevo event
-        const eventDate = date ?? new Date()
-        const { data: created, error } = await supabase
-          .from('event_nights')
-          .insert({
-            season_id: seasonId,
-            number: eventNumber,
-            date: eventDate.toISOString().split('T')[0],
-            status: 'live',
-          })
-          .select()
-          .single()
+      const eventDate = date ?? new Date()
+      const { data: created, error: insertError } = await supabase
+        .from('event_nights')
+        .insert({
+          season_id: seasonId,
+          number: eventNumber,
+          date: eventDate.toISOString().split('T')[0],
+          status: 'live',
+        })
+        .select()
+        .single()
 
-        if (error) throw error
+      if (insertError) throw new Error(`Error creando fecha: ${insertError.message}`)
+      if (!created) throw new Error('Fecha no fue creada')
 
-        return created
-          ? {
-              id: created.id,
-              seasonId: created.season_id,
-              number: created.number,
-              date: created.date,
-              status: created.status,
-            }
-          : null
-      } catch (err) {
-        console.error('Error finding/creating event night:', err)
-        return null
+      return {
+        id: created.id,
+        seasonId: created.season_id,
+        number: created.number,
+        date: created.date,
+        status: created.status,
       }
     },
     []
   )
 
   /**
-   * Busca o crea Season y EventNight basado en la info parseada
-   * Retorna el event_id para asociar al live_tournament_state
+   * Busca o crea Season y EventNight. Lanza error en vez de retornar null
+   * para que los llamadores puedan surfacear el problema al usuario.
    */
   const resolveEvent = useCallback(
     async (
       seasonType: SeasonType,
       eventNumber: number
-    ): Promise<{ season: Season; event: EventNight } | null> => {
+    ): Promise<{ season: Season; event: EventNight }> => {
       const year = new Date().getFullYear()
-
       const season = await findOrCreateSeason(seasonType, year)
-      if (!season) return null
-
       const event = await findOrCreateEventNight(season.id, eventNumber)
-      if (!event) return null
-
       return { season, event }
     },
     [findOrCreateSeason, findOrCreateEventNight]

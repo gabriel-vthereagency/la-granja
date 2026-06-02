@@ -515,13 +515,11 @@ export function useTournamentControl() {
 
         if (seasonType) {
           const resolved = await resolveEvent(seasonType, state.eventNumber)
-          if (resolved) {
-            eventId = resolved.event.id
-            await updateState({
-              eventId,
-              seasonName: resolved.season.name,
-            })
-          }
+          eventId = resolved.event.id
+          await updateState({
+            eventId,
+            seasonName: resolved.season.name,
+          })
         }
       }
 
@@ -602,12 +600,14 @@ export function useTournamentControl() {
     resolvingEventRef.current = true
     resolveEvent(seasonType, state.eventNumber)
       .then((resolved) => {
-        if (resolved) {
-          updateState({
-            eventId: resolved.event.id,
-            seasonName: resolved.season.name,
-          })
-        }
+        updateState({
+          eventId: resolved.event.id,
+          seasonName: resolved.season.name,
+        })
+      })
+      .catch((err) => {
+        console.error('[Control] Error resolviendo evento automáticamente:', err)
+        setError(err instanceof Error ? err.message : 'Error resolviendo evento')
       })
       .finally(() => {
         resolvingEventRef.current = false

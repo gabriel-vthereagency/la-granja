@@ -114,13 +114,16 @@ export function PlayerRegistration({
       // Resolver evento si se detecto header
       const tournamentInfo: TournamentInfo = {}
       if (detectedHeader?.seasonType && detectedHeader?.eventNumber) {
-        const resolved = await resolveEvent(
-          detectedHeader.seasonType,
-          detectedHeader.eventNumber
-        )
-        if (resolved) {
+        try {
+          const resolved = await resolveEvent(
+            detectedHeader.seasonType,
+            detectedHeader.eventNumber
+          )
           tournamentInfo.eventId = resolved.event.id
           tournamentInfo.seasonName = resolved.season.name
+        } catch (err) {
+          console.error('[Registration] Error resolviendo evento:', err)
+          // Continuar sin eventId — el auto-resolve lo reintentará al cargar
         }
         tournamentInfo.tournamentName = getSeasonDisplayName(detectedHeader.seasonType)
         tournamentInfo.eventNumber = detectedHeader.eventNumber
