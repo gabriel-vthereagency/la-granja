@@ -5,9 +5,11 @@ import { useSeason } from '../hooks/useSeason'
 import { useSeasonEvents } from '../hooks/useSeasonEvents'
 import { useStandings } from '../hooks/useStandings'
 import { StandingsTable } from '../components/StandingsTable'
+import { FinalSevenQualifiers } from '../components/season/FinalSevenQualifiers'
 import { GlassCard, PageHeader, TableSkeleton, PageContainer } from '../components/ui'
 import { fadeIn, staggerContainer, staggerItem } from '../lib/motion'
 import { getFinalForSeason } from '../data/finals'
+import { getFracaWinner } from '../data/playoffs'
 import type { FinalResult } from '../data/finals'
 
 const MEDAL_COLORS = ['text-gold', 'text-silver', 'text-bronze']
@@ -90,9 +92,11 @@ export function SeasonPage() {
         backLabel="Volver al historial"
       />
 
-      {/* Champions section — only Final Seven + Regular (no Fraca) */}
+      {/* Champions section — only Final Seven + Regular (no Fraca).
+          When the Final Seven has not been played yet, show who qualified
+          for it instead of an empty champion card. */}
       {season.status === 'finished' && (
-        <motion.div variants={fadeIn} initial="initial" animate="animate">
+        <motion.div className="space-y-4" variants={fadeIn} initial="initial" animate="animate">
           {isSummer ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <HeroChampionCard
@@ -107,7 +111,7 @@ export function SeasonPage() {
                 showLaurels
               />
             </div>
-          ) : (
+          ) : finalSevenChampion ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <HeroChampionCard
                 title="Final Seven"
@@ -121,6 +125,21 @@ export function SeasonPage() {
                 accentColor="accent"
               />
             </div>
+          ) : (
+            <>
+              {/* Alone in the row, so it stays narrow instead of stretching */}
+              <div className="md:max-w-sm">
+                <HeroChampionCard
+                  title="Temporada Regular"
+                  player={regularChampion}
+                  accentColor="accent"
+                />
+              </div>
+              <FinalSevenQualifiers
+                standings={standings}
+                fracaWinnerId={getFracaWinner(season.name)}
+              />
+            </>
           )}
         </motion.div>
       )}

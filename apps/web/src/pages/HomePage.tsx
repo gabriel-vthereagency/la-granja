@@ -6,6 +6,7 @@ import { useStandings } from '../hooks/useStandings'
 import { useLastPodium, type PodiumEntry } from '../hooks/useLastPodium'
 import { StandingsTable } from '../components/StandingsTable'
 import { LiveTournamentBanner } from '../components/LiveTournamentBanner'
+import { ChampionHero } from '../components/champion/ChampionHero'
 import { GlassCard, PageContainer, TableSkeleton } from '../components/ui'
 import {
   heroTitle,
@@ -23,6 +24,12 @@ export function HomePage() {
   const { podium, eventNumber, loading: podiumLoading } = useLastPodium(activeSeason?.id ?? null)
 
   const isLoading = seasonsLoading || standingsLoading || podiumLoading
+
+  // Once a season is closed, the season champion takes over the hero from the
+  // weekly podium. Falls back to the podium if the season has no results.
+  const seasonClosed = activeSeason?.status === 'finished'
+  const champion = standings[0] ?? null
+  const showChampion = seasonClosed && (champion !== null || standingsLoading)
 
   function scrollToStandings() {
     document.getElementById('standings')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -132,13 +139,27 @@ export function HomePage() {
               </motion.div>
             </div>
 
-            {/* RIGHT COLUMN — Podium with player photos */}
+            {/* RIGHT COLUMN — Season champion, or the weekly podium mid-season */}
             <div className="md:col-span-5">
-              <HeroPodium
-                podium={podium}
-                eventNumber={eventNumber}
-                loading={podiumLoading}
-              />
+              {showChampion ? (
+                champion && activeSeason ? (
+                  <ChampionHero
+                    player={{ id: champion.playerId, name: champion.player.name }}
+                    points={champion.totalPoints}
+                    events={champion.eventsPlayed}
+                    golds={champion.golds}
+                    year={activeSeason.year}
+                  />
+                ) : (
+                  <div className="h-[300px] md:h-[480px]" aria-hidden="true" />
+                )
+              ) : (
+                <HeroPodium
+                  podium={podium}
+                  eventNumber={eventNumber}
+                  loading={podiumLoading}
+                />
+              )}
             </div>
             </div>
           </div>
