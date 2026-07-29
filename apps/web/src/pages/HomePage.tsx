@@ -8,6 +8,7 @@ import { StandingsTable } from '../components/StandingsTable'
 import { LiveTournamentBanner } from '../components/LiveTournamentBanner'
 import { ChampionHero } from '../components/champion/ChampionHero'
 import { GlassCard, PageContainer, TableSkeleton } from '../components/ui'
+import { getFinalForSeason } from '../data/finals'
 import {
   heroTitle,
   heroFadeUp,
@@ -30,6 +31,17 @@ export function HomePage() {
   const seasonClosed = activeSeason?.status === 'finished'
   const champion = standings[0] ?? null
   const showChampion = seasonClosed && (champion !== null || standingsLoading)
+
+  // When the closed season has a Final Seven champion, they take over the hero
+  // with the Hall of Fame treatment (gold + HOF crest) instead of the regular
+  // points champion. Falls back to the points champion if not found.
+  const finalData =
+    seasonClosed && activeSeason && activeSeason.type !== 'summer'
+      ? getFinalForSeason(activeSeason.type, activeSeason.year)
+      : undefined
+  const finalChampionKey = finalData?.results[0]?.playerKey ?? null
+  const finalChampion =
+    finalChampionKey ? standings.find((s) => s.playerId === finalChampionKey) ?? null : null
 
   function scrollToStandings() {
     document.getElementById('standings')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -142,7 +154,16 @@ export function HomePage() {
             {/* RIGHT COLUMN — Season champion, or the weekly podium mid-season */}
             <div className="md:col-span-5">
               {showChampion ? (
-                champion && activeSeason ? (
+                finalChampion && activeSeason ? (
+                  <ChampionHero
+                    player={{ id: finalChampion.playerId, name: finalChampion.player.name }}
+                    points={finalChampion.totalPoints}
+                    events={finalChampion.eventsPlayed}
+                    golds={finalChampion.golds}
+                    year={activeSeason.year}
+                    variant="hof"
+                  />
+                ) : champion && activeSeason ? (
                   <ChampionHero
                     player={{ id: champion.playerId, name: champion.player.name }}
                     points={champion.totalPoints}
