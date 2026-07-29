@@ -275,6 +275,20 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
       { position: 8, name: 'Araña', playerKey: 'arana' },
     ],
   },
+  {
+    year: 2026, type: 'apertura',
+    results: [
+      { position: 1, name: 'Galle', playerKey: 'galle' },
+      { position: 2, name: 'Ari', playerKey: 'ari' },
+      { position: 3, name: 'Herni', playerKey: 'hernan' },
+      { position: 4, name: 'Tala', playerKey: 'tala' },
+      { position: 5, name: 'Rasta', playerKey: 'rasta' },
+      { position: 6, name: 'Chuchak', playerKey: 'gabo' },
+      { position: 7, name: 'Shark', playerKey: 'shark' },
+      { position: 8, name: 'Mou', playerKey: 'mou' },
+      { position: 9, name: 'Lean', playerKey: 'lean' },
+    ],
+  },
 ]
 
 // ─── Summer Cup Results (Top 5) ─────────────────────────────────
