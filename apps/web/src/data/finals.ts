@@ -88,7 +88,7 @@ export const FINAL_SEVEN_DATA: FinalData[] = [
       { position: 3, name: 'Gonzalo', playerKey: 'gonza' },
       { position: 4, name: 'Lucas', playerKey: 'lucas' },
       { position: 5, name: 'Martín', playerKey: 'martin' },
-      { position: 6, name: 'Sergio', playerKey: 'sergio' },
+      { position: 6, name: 'Tala', playerKey: 'tala' },
       { position: 7, name: 'FFF', playerKey: 'fff' },
       { position: 8, name: 'Araña', playerKey: 'arana' },
     ],
