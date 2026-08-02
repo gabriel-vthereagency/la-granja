@@ -160,15 +160,15 @@ export function PlayerProfilePage() {
           {[
             { label: '🥇 Oros', value: stats.golds, color: 'text-gold' },
             { label: '🥈 Platas', value: stats.silvers, color: 'text-silver' },
-            { label: '🥉 Bronces', value: stats.bronzes, color: 'text-bronze' },
+            { label: '🥉 Bronce', value: stats.bronzes, color: 'text-bronze' },
             { label: '4°', value: stats.fourths, color: 'text-text-secondary' },
             { label: '5°', value: stats.fifths, color: 'text-text-secondary' },
-            { label: '6° Burbuja', value: stats.bubbles, color: 'text-text-tertiary' },
+            { label: 'Burbujas', value: stats.bubbles, color: 'text-text-tertiary' },
           ].map((s) => (
             <motion.div key={s.label} variants={staggerItem}>
               <GlassCard className="p-4 text-center">
                 <AnimatedCounter value={s.value} className={`text-2xl font-bold ${s.color}`} />
-                <div className="text-text-tertiary text-sm">{s.label}</div>
+                <div className="text-text-tertiary text-sm whitespace-nowrap">{s.label}</div>
               </GlassCard>
             </motion.div>
           ))}
