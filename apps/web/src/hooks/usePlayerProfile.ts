@@ -1,6 +1,7 @@
 import useSWR from 'swr'
 import { supabase } from '../lib/supabase'
 import type { Player } from '@lagranja/types'
+import { getFinalSevensPlayed } from '../data/finals'
 
 export interface PlayerProfile {
   player: Player
@@ -66,7 +67,7 @@ export async function fetchPlayerProfile(playerId: string): Promise<PlayerProfil
         lastPlaces: Number(s.last_places),
         finalTables: Number(s.final_tables),
         bubbles: Number(s.bubbles),
-        finalSevens: 0,
+        finalSevens: getFinalSevensPlayed(playerId),
         fracas: 0,
       },
     }
@@ -160,7 +161,7 @@ export async function fetchPlayerProfile(playerId: string): Promise<PlayerProfil
       lastPlaces,
       finalTables,
       bubbles,
-      finalSevens: 0,
+      finalSevens: getFinalSevensPlayed(playerId),
       fracas: 0,
     },
   }

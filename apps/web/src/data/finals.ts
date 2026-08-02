@@ -399,7 +399,13 @@ export function getFinalForSeason(
   return FINAL_SEVEN_DATA.find((d) => d.year === year && d.type === type)
 }
 
-/** Top 10 players by number of Final Seven appearances */
+/**
+ * Top players by number of Final Seven appearances.
+ *
+ * Returns the top 10, but keeps every player tied with the 10th place instead
+ * of cutting a tie in half — so a group all sitting on the cutoff count is
+ * shown in full rather than arbitrarily truncated.
+ */
 export function getTopFinalClassifications(): {
   player: string
   playerKey: string
@@ -418,7 +424,22 @@ export function getTopFinalClassifications(): {
     }
   }
 
-  return Array.from(counts.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10)
+  const sorted = Array.from(counts.values()).sort((a, b) => b.count - a.count)
+  const TOP = 10
+  const tenth = sorted[TOP - 1]
+  if (!tenth) return sorted
+
+  // Include the top 10 plus anyone tied with the 10th-place count.
+  return sorted.filter((r) => r.count >= tenth.count)
+}
+
+/** Number of Final Seven appearances for a given player (matched by playerKey / id). */
+export function getFinalSevensPlayed(playerKey: string): number {
+  let count = 0
+  for (const final of FINAL_SEVEN_DATA) {
+    for (const r of final.results) {
+      if (r.playerKey === playerKey) count++
+    }
+  }
+  return count
 }

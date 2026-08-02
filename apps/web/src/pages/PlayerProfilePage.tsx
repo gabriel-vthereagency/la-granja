@@ -177,11 +177,17 @@ export function PlayerProfilePage() {
 
       {/* Otros stats */}
       <motion.div
-        className="grid grid-cols-2 md:grid-cols-3 gap-4"
+        className="grid grid-cols-2 md:grid-cols-4 gap-4"
         variants={staggerContainer}
         initial="initial"
         animate="animate"
       >
+        <motion.div variants={staggerItem}>
+          <GlassCard className="p-4 text-center">
+            <AnimatedCounter value={stats.finalSevens} className="text-2xl font-bold text-gold" />
+            <div className="text-text-tertiary text-sm">Final Seven jugados</div>
+          </GlassCard>
+        </motion.div>
         <motion.div variants={staggerItem}>
           <GlassCard className="p-4 text-center">
             <AnimatedCounter value={stats.finalTables} className="text-2xl font-bold text-purple-400" />
