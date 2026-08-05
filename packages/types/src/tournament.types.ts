@@ -76,7 +76,7 @@ export const BLIND_STRUCTURE: BlindLevel[] = [
   { index: 8, type: 'level', sb: 15, bb: 30, ante: 0, durationSec: 720 },
   { index: 9, type: 'level', sb: 20, bb: 40, ante: 0, durationSec: 720 },
   { index: 10, type: 'level', sb: 25, bb: 50, ante: 0, durationSec: 720 },
-  { index: 11, type: 'break', sb: null, bb: null, ante: null, durationSec: 1800 },
+  { index: 11, type: 'break', sb: null, bb: null, ante: null, durationSec: 2400 },
   { index: 12, type: 'level', sb: 30, bb: 60, ante: 0, durationSec: 900 },
   { index: 13, type: 'level', sb: 40, bb: 80, ante: 0, durationSec: 900 },
   { index: 14, type: 'level', sb: 50, bb: 100, ante: 0, durationSec: 900 },
