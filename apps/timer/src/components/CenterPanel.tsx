@@ -6,7 +6,7 @@ interface CenterPanelProps {
   timeRemaining: number
   isPaused: boolean
   gamePhase: GamePhase
-  spotlightPlayerName?: string | null
+  spotlightPlayerNames?: string[]
 }
 
 function playerNameToFilename(name: string): string {
@@ -22,7 +22,7 @@ export function CenterPanel({
   timeRemaining,
   isPaused,
   gamePhase,
-  spotlightPlayerName,
+  spotlightPlayerNames = [],
 }: CenterPanelProps) {
   const level = getBlindLevel(currentLevel)
   const isBreak = level?.type === 'break'
@@ -52,9 +52,12 @@ export function CenterPanel({
 
   const phaseLabel = getPhaseLabel()
 
-  const photoFile = spotlightPlayerName
-    ? `${import.meta.env.BASE_URL}Players/${playerNameToFilename(spotlightPlayerName)}.png`
-    : null
+  const photoUrl = (name: string) =>
+    `${import.meta.env.BASE_URL}Players/${playerNameToFilename(name)}.png`
+
+  const hideOnError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    ;(e.target as HTMLImageElement).style.display = 'none'
+  }
 
   return (
     <div className="center-panel">
@@ -68,12 +71,22 @@ export function CenterPanel({
 
       {/* Clock */}
       <div className="center-clock">
-        {photoFile && (
+        {/* Foto izquierda: solo en heads-up (2 jugadores) */}
+        {spotlightPlayerNames.length === 2 && (
           <img
-            src={photoFile}
-            alt={spotlightPlayerName ?? ''}
-            className="center-player-photo"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+            src={photoUrl(spotlightPlayerNames[0]!)}
+            alt={spotlightPlayerNames[0]}
+            className="center-player-photo left"
+            onError={hideOnError}
+          />
+        )}
+        {/* Foto derecha: siempre (1 o 2 jugadores) */}
+        {spotlightPlayerNames.length >= 1 && (
+          <img
+            src={photoUrl(spotlightPlayerNames[spotlightPlayerNames.length - 1]!)}
+            alt={spotlightPlayerNames[spotlightPlayerNames.length - 1]}
+            className="center-player-photo right"
+            onError={hideOnError}
           />
         )}
         <span className={`clock-time ${isPaused ? 'paused' : ''}`}>

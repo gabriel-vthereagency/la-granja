@@ -359,17 +359,25 @@ html, body {
 
 .center-player-photo {
   position: absolute;
-  right: -24px;
   bottom: 0;
   height: 85%;
   width: auto;
   object-fit: contain;
   object-position: bottom;
   opacity: 0.35;
+  pointer-events: none;
+}
+
+.center-player-photo.right {
+  right: -24px;
   mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 40%, transparent 100%);
   -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 40%, transparent 100%);
-  pointer-events: none;
-  border-radius: 0 0 12px 0;
+}
+
+.center-player-photo.left {
+  left: -24px;
+  mask-image: linear-gradient(to right, rgba(0,0,0,0.8) 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0.8) 40%, transparent 100%);
 }
 
 @keyframes pulse {

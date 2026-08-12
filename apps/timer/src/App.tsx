@@ -160,10 +160,14 @@ export default function App() {
   const championNameDisplay = state.championName ?? activeChampion?.name ?? null
   const showChampion = activePlayers <= 1 && Boolean(championNameDisplay)
 
-  // Mostrar foto del jugador en el reloj cuando quedan ≤ 2 activos
-  const spotlightName = activePlayers <= 2 && activePlayers >= 1
-    ? (state.championName ?? activeChampion?.name ?? null)
-    : null
+  // Halcón siempre visible; en heads-up se reemplaza por los 2 restantes; en campeón por el ganador
+  const activePlayersList = state.players.filter((p) => p.status === 'active')
+  const spotlightNames: string[] =
+    activePlayers <= 1
+      ? [state.championName ?? activeChampion?.name ?? 'Halcón']
+      : activePlayers === 2
+        ? activePlayersList.map((p) => p.name)
+        : ['Halcón']
 
   const getDisplayPhase = (activeCount: number): GamePhase => {
     if (activeCount <= 1) return 'champion'
@@ -207,7 +211,7 @@ export default function App() {
             currentLevel={state.currentLevel}
             timeRemaining={state.timeRemaining}
             isPaused={state.isPaused}
-            spotlightPlayerName={spotlightName}
+            spotlightPlayerNames={spotlightNames}
             gamePhase={displayPhase}
           />
 
