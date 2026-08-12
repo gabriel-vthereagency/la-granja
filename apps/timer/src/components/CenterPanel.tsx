@@ -6,6 +6,15 @@ interface CenterPanelProps {
   timeRemaining: number
   isPaused: boolean
   gamePhase: GamePhase
+  spotlightPlayerName?: string | null
+}
+
+function playerNameToFilename(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // remove accents (ó→o, ñ→n, etc.)
+    .replace(/[^a-z0-9]/g, '')       // remove non-alphanumeric
 }
 
 export function CenterPanel({
@@ -13,6 +22,7 @@ export function CenterPanel({
   timeRemaining,
   isPaused,
   gamePhase,
+  spotlightPlayerName,
 }: CenterPanelProps) {
   const level = getBlindLevel(currentLevel)
   const isBreak = level?.type === 'break'
@@ -42,6 +52,10 @@ export function CenterPanel({
 
   const phaseLabel = getPhaseLabel()
 
+  const photoFile = spotlightPlayerName
+    ? `${import.meta.env.BASE_URL}Players/${playerNameToFilename(spotlightPlayerName)}.png`
+    : null
+
   return (
     <div className="center-panel">
       {/* Badges */}
@@ -54,6 +68,14 @@ export function CenterPanel({
 
       {/* Clock */}
       <div className="center-clock">
+        {photoFile && (
+          <img
+            src={photoFile}
+            alt={spotlightPlayerName ?? ''}
+            className="center-player-photo"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+          />
+        )}
         <span className={`clock-time ${isPaused ? 'paused' : ''}`}>
           {formatTime(timeRemaining)}
         </span>

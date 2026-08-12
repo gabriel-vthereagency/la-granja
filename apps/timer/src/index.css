@@ -338,6 +338,9 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
 }
 
 .clock-time {
@@ -352,6 +355,21 @@ html, body {
 .clock-time.paused {
   color: var(--accent-yellow);
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+.center-player-photo {
+  position: absolute;
+  right: -24px;
+  bottom: 0;
+  height: 85%;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom;
+  opacity: 0.35;
+  mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 40%, transparent 100%);
+  pointer-events: none;
+  border-radius: 0 0 12px 0;
 }
 
 @keyframes pulse {

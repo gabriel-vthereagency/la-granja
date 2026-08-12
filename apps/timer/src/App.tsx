@@ -160,6 +160,11 @@ export default function App() {
   const championNameDisplay = state.championName ?? activeChampion?.name ?? null
   const showChampion = activePlayers <= 1 && Boolean(championNameDisplay)
 
+  // Mostrar foto del jugador en el reloj cuando quedan ≤ 2 activos
+  const spotlightName = activePlayers <= 2 && activePlayers >= 1
+    ? (state.championName ?? activeChampion?.name ?? null)
+    : null
+
   const getDisplayPhase = (activeCount: number): GamePhase => {
     if (activeCount <= 1) return 'champion'
     if (activeCount === 2) return 'heads_up'
@@ -202,6 +207,7 @@ export default function App() {
             currentLevel={state.currentLevel}
             timeRemaining={state.timeRemaining}
             isPaused={state.isPaused}
+            spotlightPlayerName={spotlightName}
             gamePhase={displayPhase}
           />
 
