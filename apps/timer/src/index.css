@@ -169,6 +169,9 @@ html, body {
   padding: 16px 20px;
   border-bottom: 2px solid var(--bg-tertiary);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .side-panel-label {
@@ -177,6 +180,16 @@ html, body {
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
+}
+
+.side-panel-count {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent-yellow);
+  background: rgba(255, 200, 0, 0.15);
+  border-radius: 8px;
+  padding: 2px 10px;
+  line-height: 1.4;
 }
 
 .side-panel-list {

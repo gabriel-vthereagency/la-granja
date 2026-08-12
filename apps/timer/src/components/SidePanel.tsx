@@ -42,6 +42,9 @@ export function SidePanel({ type, players }: SidePanelProps) {
     <div className={`side-panel ${type}`}>
       <div className="side-panel-header">
         <span className="side-panel-label">{label}</span>
+        {type === 'recompras' && allPlayers.length > 0 && (
+          <span className="side-panel-count">{allPlayers.length}</span>
+        )}
       </div>
       <div className={`side-panel-list ${scrollClass}`}>
         {displayPlayers.length === 0 ? (
