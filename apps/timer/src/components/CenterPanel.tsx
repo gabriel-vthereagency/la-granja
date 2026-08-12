@@ -55,28 +55,31 @@ export function CenterPanel({
   const photoUrl = (name: string) =>
     `${import.meta.env.BASE_URL}Players/${playerNameToFilename(name)}.png`
 
-  const hideOnError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    ;(e.target as HTMLImageElement).style.display = 'none'
+  const hideCircleOnError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const parent = (e.target as HTMLImageElement).parentElement
+    if (parent) parent.style.display = 'none'
   }
 
   return (
     <div className="center-panel">
-      {/* Fotos de jugadores — ancladas al fondo del panel, detrás de todo */}
+      {/* Fotos en círculo para heads-up */}
       {spotlightPlayerNames.length === 2 && (
-        <img
-          src={photoUrl(spotlightPlayerNames[0]!)}
-          alt={spotlightPlayerNames[0]}
-          className="center-player-photo left"
-          onError={hideOnError}
-        />
+        <div className="center-player-circle left">
+          <img
+            src={photoUrl(spotlightPlayerNames[0]!)}
+            alt={spotlightPlayerNames[0] ?? ''}
+            onError={hideCircleOnError}
+          />
+        </div>
       )}
       {spotlightPlayerNames.length >= 1 && (
-        <img
-          src={photoUrl(spotlightPlayerNames[spotlightPlayerNames.length - 1]!)}
-          alt={spotlightPlayerNames[spotlightPlayerNames.length - 1]}
-          className="center-player-photo right"
-          onError={hideOnError}
-        />
+        <div className="center-player-circle right">
+          <img
+            src={photoUrl(spotlightPlayerNames[spotlightPlayerNames.length - 1]!)}
+            alt={spotlightPlayerNames[spotlightPlayerNames.length - 1] ?? ''}
+            onError={hideCircleOnError}
+          />
+        </div>
       )}
 
       {/* Badges */}

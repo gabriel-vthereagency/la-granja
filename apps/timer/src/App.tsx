@@ -160,15 +160,10 @@ export default function App() {
   const championNameDisplay = state.championName ?? activeChampion?.name ?? null
   const showChampion = activePlayers <= 1 && Boolean(championNameDisplay)
 
-  // Halcón siempre visible; en heads-up se reemplaza por los 2 restantes
-  // En fase campeón no mostramos foto (el modal de campeón cubre todo)
+  // Solo en heads-up (2 jugadores) mostramos las fotos en círculo
   const activePlayersList = state.players.filter((p) => p.status === 'active')
   const spotlightNames: string[] =
-    displayPhase === 'champion'
-      ? []
-      : activePlayers === 2
-        ? activePlayersList.map((p) => p.name)
-        : ['Halcón']
+    activePlayers === 2 ? activePlayersList.map((p) => p.name) : []
 
   const getDisplayPhase = (activeCount: number): GamePhase => {
     if (activeCount <= 1) return 'champion'

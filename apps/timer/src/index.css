@@ -357,28 +357,33 @@ html, body {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-.center-player-photo {
+.center-player-circle {
   position: absolute;
-  bottom: 0;
-  height: 90%;
-  width: auto;
-  object-fit: contain;
-  object-position: bottom;
-  opacity: 0.55;
-  pointer-events: none;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  overflow: hidden;
+  top: 50%;
+  transform: translateY(-50%);
   z-index: 0;
+  pointer-events: none;
 }
 
-.center-player-photo.right {
-  right: -16px;
-  mask-image: linear-gradient(to left, rgba(0,0,0,0.9) 50%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.9) 50%, transparent 100%);
+.center-player-circle.left {
+  left: 40px;
 }
 
-.center-player-photo.left {
-  left: -16px;
-  mask-image: linear-gradient(to right, rgba(0,0,0,0.9) 50%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0.9) 50%, transparent 100%);
+.center-player-circle.right {
+  right: 40px;
+}
+
+.center-player-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  transform: scale(2.2);
+  transform-origin: top center;
 }
 
 .center-badges,
