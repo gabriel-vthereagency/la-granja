@@ -303,6 +303,8 @@ html, body {
   justify-content: space-between;
   padding: 24px 32px;
   gap: 12px;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Badges */
@@ -338,9 +340,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   width: 100%;
-  overflow: hidden;
 }
 
 .clock-time {
@@ -360,24 +360,33 @@ html, body {
 .center-player-photo {
   position: absolute;
   bottom: 0;
-  height: 85%;
+  height: 90%;
   width: auto;
   object-fit: contain;
   object-position: bottom;
-  opacity: 0.35;
+  opacity: 0.55;
   pointer-events: none;
+  z-index: 0;
 }
 
 .center-player-photo.right {
-  right: -24px;
-  mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 40%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.8) 40%, transparent 100%);
+  right: -16px;
+  mask-image: linear-gradient(to left, rgba(0,0,0,0.9) 50%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,0.9) 50%, transparent 100%);
 }
 
 .center-player-photo.left {
-  left: -24px;
-  mask-image: linear-gradient(to right, rgba(0,0,0,0.8) 40%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0.8) 40%, transparent 100%);
+  left: -16px;
+  mask-image: linear-gradient(to right, rgba(0,0,0,0.9) 50%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0.9) 50%, transparent 100%);
+}
+
+.center-badges,
+.center-clock,
+.center-blinds,
+.progress-container {
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes pulse {

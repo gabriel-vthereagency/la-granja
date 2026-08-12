@@ -61,6 +61,24 @@ export function CenterPanel({
 
   return (
     <div className="center-panel">
+      {/* Fotos de jugadores — ancladas al fondo del panel, detrás de todo */}
+      {spotlightPlayerNames.length === 2 && (
+        <img
+          src={photoUrl(spotlightPlayerNames[0]!)}
+          alt={spotlightPlayerNames[0]}
+          className="center-player-photo left"
+          onError={hideOnError}
+        />
+      )}
+      {spotlightPlayerNames.length >= 1 && (
+        <img
+          src={photoUrl(spotlightPlayerNames[spotlightPlayerNames.length - 1]!)}
+          alt={spotlightPlayerNames[spotlightPlayerNames.length - 1]}
+          className="center-player-photo right"
+          onError={hideOnError}
+        />
+      )}
+
       {/* Badges */}
       <div className="center-badges">
         <span className="level-badge">
@@ -71,24 +89,6 @@ export function CenterPanel({
 
       {/* Clock */}
       <div className="center-clock">
-        {/* Foto izquierda: solo en heads-up (2 jugadores) */}
-        {spotlightPlayerNames.length === 2 && (
-          <img
-            src={photoUrl(spotlightPlayerNames[0]!)}
-            alt={spotlightPlayerNames[0]}
-            className="center-player-photo left"
-            onError={hideOnError}
-          />
-        )}
-        {/* Foto derecha: siempre (1 o 2 jugadores) */}
-        {spotlightPlayerNames.length >= 1 && (
-          <img
-            src={photoUrl(spotlightPlayerNames[spotlightPlayerNames.length - 1]!)}
-            alt={spotlightPlayerNames[spotlightPlayerNames.length - 1]}
-            className="center-player-photo right"
-            onError={hideOnError}
-          />
-        )}
         <span className={`clock-time ${isPaused ? 'paused' : ''}`}>
           {formatTime(timeRemaining)}
         </span>
